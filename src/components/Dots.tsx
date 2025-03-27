@@ -20,7 +20,7 @@ export const Dots: React.FC<DotsProps> = () => {
     if (circleTexture || !app?.renderer) return
     const graphics = new Graphics();
     graphics.setFillStyle({ color: 'red', alpha: .5 });
-    graphics.circle(0, 0, 5);
+    graphics.circle(0, 0, 1);
     graphics.fill();
 
     const renderTexture = RenderTexture.create({
