@@ -33,8 +33,8 @@ export const ViewPortCanvas: React.FC<ViewPortCanvasProps> = ({
     viewPortRef.current
         .pinch()
         .wheel({ smooth: 3 })
-        .clampZoom({ minScale: 1, maxScale: 15 })
-        .clamp({ direction: 'all' });
+        // .clampZoom({ minScale: 1, maxScale: 15 })
+        // .clamp({ direction: 'all' });
 
     viewPortRef.current.on('zoomed', () => {
       const scale = viewPortRef.current?.scaled;

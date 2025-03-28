@@ -13,19 +13,19 @@ self.onmessage = async e => {
   const texture = await Assets.load(imagePath); 
 
   // This creates a texture from a 'bunny.png' image
-  const bunny = new Sprite(texture);
+  const image = new Sprite(texture);
 
-  // Setup the position of the bunny
-  bunny.x = 0;
-  bunny.y = 0;
+  // Setup the position of the image
+  image.x = 0;
+  image.y = 0;
 
-  // Setup dimensions of the bunny
-  bunny.width = width;
-  bunny.height = height;
+  // Setup dimensions of the image
+  image.width = width;
+  image.height = height;
 
-  bunny.zIndex = -1;
+  image.zIndex = -1;
 
-  app.stage.addChild(bunny);
+  app.stage.addChild(image);
 
 
   const graphics = new Graphics();

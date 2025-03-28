@@ -1,6 +1,7 @@
 // import { CellsCanvas } from './components/CellsCanvas'
 // import { CellsOffScreenCanvas } from './components/CellsOffScreenCanvas'
-import { CellsViewPortCanvas } from './components/CellsViewPortCanvas';
+// import { CellsViewPortCanvas } from './components/CellsViewPortCanvas';
+import { CellViewPortOffScreenCanvas } from './components/CellViewPortWorker'
 import { useState } from 'react'
 
 import './App.css'
@@ -18,7 +19,11 @@ function App() {
         width={1000}
         height={1000}
       /> */}
-      <CellsViewPortCanvas 
+      {/* <CellsViewPortCanvas 
+        width={1000}
+        height={1000}
+      /> */}
+      <CellViewPortOffScreenCanvas 
         width={1000}
         height={1000}
       />
