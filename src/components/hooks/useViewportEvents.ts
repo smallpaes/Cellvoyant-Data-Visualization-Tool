@@ -13,15 +13,15 @@ export const useViewportEvents = ({ canvasRef, postMessage, isInitialized }: Use
     e.preventDefault();
     if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const canvasX = e.clientX - rect.left;
+    const canvasY = e.clientY - rect.top;
         
     postMessage({
       type: WorkerMessageType.WHEEL,
       deltaY: e.deltaY,
       deltaMode: e.deltaMode,
-      clientX: x,
-      clientY: y
+      canvasX,
+      canvasY
     });
   }, [canvasRef, postMessage]);
 
@@ -37,12 +37,18 @@ export const useViewportEvents = ({ canvasRef, postMessage, isInitialized }: Use
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     e.stopPropagation();
+    if (!canvasRef.current) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const canvasX = e.clientX - rect.left;
+    const canvasY = e.clientY - rect.top;
     postMessage({
       type: WorkerMessageType.MOUSE_MOVE,
       clientX: e.clientX,
-      clientY: e.clientY
+      clientY: e.clientY,
+      canvasX,
+      canvasY
     });
-  }, [postMessage]);
+  }, [postMessage, canvasRef]);
 
   const handleMouseUp = useCallback((e: MouseEvent) => {
     e.stopPropagation();

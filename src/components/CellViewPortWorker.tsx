@@ -41,13 +41,17 @@ export const CellViewPortOffScreenCanvas: React.FC<CellViewPortOffScreenCanvasPr
     },
     drag: {
       direction: 'all'
+    },
+    tooltip: {
+      enabled: true
     }
   }), [])
 
   const {
     isLoading,
     viewportActions,
-    viewportInfo
+    viewportInfo,
+    tooltip
   } = useViewport({ canvasRef, data: updatedData, pluginOptions });
 
   const { zoomTo, centerOn, reset } = viewportActions;
@@ -59,10 +63,30 @@ export const CellViewPortOffScreenCanvas: React.FC<CellViewPortOffScreenCanvasPr
 
   return (
     <section style={{
-      position: 'relative'
+      position: 'relative',
     }}>
       <canvas ref={canvasRef} width={width} height={height} />
       {isLoading && <div>Loading...</div>}
+      {tooltip.isVisible && <div
+        style={{
+          position: 'absolute',
+          top: tooltip.data?.y || 0 + 100,
+          left: tooltip.data?.x || 0 + 100,
+          backgroundColor: 'white',
+          border: '1px solid black',
+          padding: '10px',
+          borderRadius: '5px',
+          color: 'black',
+          textAlign: 'left',
+          minWidth: 'fit-content',
+          pointerEvents: 'none'
+        }}
+      >
+        <div>x: {tooltip.data?.x.toFixed(2)}</div>  
+        <div>y: {tooltip.data?.y.toFixed(2)}</div>
+        <div>width: {tooltip.data?.width.toFixed(2)}</div>
+        <div>height: {tooltip.data?.height.toFixed(2)}</div>
+      </div>}
       <div>Scale: {viewportInfo.scale ? viewportInfo.scale.toFixed(2) : "1.00"}</div>
       <div>Position: X={viewportInfo.x ? viewportInfo.x.toFixed(0) : "0"}, Y={viewportInfo.y ? viewportInfo.y.toFixed(0) : "0"}</div>
       <div>World Size: {width}x{height}</div>

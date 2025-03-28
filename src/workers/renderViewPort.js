@@ -1,5 +1,6 @@
 import { Application, Assets, Sprite, Container, Graphics, RenderTexture } from '@pixi/webworker';
-
+import RBush from 'rbush';
+import { throttle } from '../utils/throttle';
 
 
 /**
@@ -29,6 +30,14 @@ class ViewportWorker extends Container {
     
     // Center the viewport initially
     this.moveCenter(this._worldCenter);
+
+    // Create RBush index
+    this.dotIndex = new RBush();
+
+    // Store base dot info (before any scaling)
+    this.baseDotSize = 8;
+    this.baseDotRadius = this.baseDotSize / 2;
+    this.scaleFactor = null;
     
     // Enable plugins (features)
     this.plugins = {
@@ -116,6 +125,9 @@ class ViewportWorker extends Container {
         noDecelerate: false,  // don't use decelerate plugin even if it's installed
         linear: false,        // if using radius, use linear movement (+/-1, +/-1) instead of angled movement (Math.cos(angle from center), Math.sin(angle from center))
         allowButtons: false   // allows mouse buttons other than left to trigger mouseEdges
+      },
+      tooltip: {
+        enabled: false,
       }
     };
 
@@ -171,6 +183,13 @@ class ViewportWorker extends Container {
     this.x = (this.screenWidth / 2) - (point.x * this.scale.x);
     this.y = (this.screenHeight / 2) - (point.y * this.scale.y);
     this._dirty = true;
+  }
+
+  /**
+   * Move the viewport to the center of the world
+   */
+  moveToCenter() {
+    this.moveCenter(this._worldCenter);
   }
   
   /**
@@ -241,7 +260,7 @@ class ViewportWorker extends Container {
     // Create a point for the zoom center
     const point = wheelOptions.center 
       ? { x: this.screenWidth / 2, y: this.screenHeight / 2 } 
-      : { x: event.clientX, y: event.clientY };
+      : { x: event.canvasX, y: event.canvasY };
     
     // Apply the zoom
     this.zoomAt(scale, point);
@@ -261,6 +280,56 @@ class ViewportWorker extends Container {
       this.plugins.drag.active = true;
       this.plugins.drag.last = { x: event.clientX, y: event.clientY };
     }
+  }
+
+  /**
+   * Check if the mouse is over a point
+   * @param {object} event - Mouse event data
+   * @returns {boolean} True if the mouse is over a point
+   */
+  checkMouseOverPoint(event) {
+    const worldPos = this.toWorld({ x: event.canvasX, y: event.canvasY });
+    
+    // Calculate search radius in world coordinates
+    // We divide by scale because we're converting from screen to world coordinates
+    const currentDotRadius = (this.baseDotRadius * this.scaleFactor);
+
+    // Define search box in world coordinates
+    const searchBox = {
+      minX: worldPos.x,
+      minY: worldPos.y,
+      maxX: worldPos.x ,
+      maxY: worldPos.y
+    };
+
+    // Perform spatial query to find dots within the search box
+    const results = this.dotIndex.search(searchBox);
+
+    // Validate results
+    let closestDot = null;
+    let closestDistance = null;
+
+    for (const dot of results) {
+      const distance = Math.sqrt(
+        Math.pow(dot.x - worldPos.x, 2) + 
+        Math.pow(dot.y - worldPos.y, 2)
+      );
+
+      if (distance < currentDotRadius && (closestDistance === null || distance < closestDistance)) {
+        closestDot = dot;
+        closestDistance = distance;
+      }
+    }
+
+    if (closestDot === null) return null;
+
+     return {
+      ...this.toScreen({ x: closestDot.x, y: closestDot.y }),
+      width: closestDot.width,
+      height: closestDot.height,
+      originalX: closestDot.x,
+      originalY: closestDot.y
+    };
   }
   
   /**
@@ -445,12 +514,20 @@ class ViewportWorker extends Container {
     }
     return false;
   }
+
+  setDotScaleFactor(size) {
+    if (typeof size !== 'number' || size <= 0) {
+      throw new Error('Scale factor must be a positive number');
+    }
+    this.scaleFactor = size;
+  }
 }
 
 /**
  * Set up the application and viewport in the worker
  */
 let app, viewport;
+const THROTTLE_DELAY = 16;
 
 // Set up render loop for the application
 function setupRenderLoop() {
@@ -480,17 +557,32 @@ async function createContent(viewport, texture, renderedData) {
 
   viewport.addChild(image);
 
+  // Prepare all items for bulk loading into RBush
+  const items = renderedData.data.map((point, i) => ({
+    minX: point[0] - renderedData.size,
+    minY: point[1] - renderedData.size,
+    maxX: point[0] + renderedData.size,
+    maxY: point[1] + renderedData.size,
+    x: point[0],
+    y: point[1],
+    index: i,
+    width: point[2],
+    height: point[3]
+  }));
+
+  // Bulk load all items
+  viewport.dotIndex.load(items);
+
   // Add cells
-  const baseSize = 8;
   const resolution = 2;
   const graphics = new Graphics();
   graphics.beginFill(0xFF0000, 1);
-  graphics.drawCircle(baseSize / 2, baseSize / 2, baseSize / 2);
+  graphics.drawCircle(viewport.baseDotSize / 2, viewport.baseDotSize / 2, viewport.baseDotSize / 2);
   graphics.endFill();
 
   const renderTexture = RenderTexture.create({
-    width: baseSize,
-    height: baseSize,
+    width: viewport.baseDotSize,
+    height: viewport.baseDotSize,
     resolution: resolution
   });
 
@@ -503,7 +595,8 @@ async function createContent(viewport, texture, renderedData) {
 
   viewport.addChild(sprites);
 
-  const scaleFactor = (renderedData.size * 2) / baseSize;
+  const scaleFactor = (renderedData.size * 2) / viewport.baseDotSize;
+  viewport.setDotScaleFactor(scaleFactor);
   for (let i = 0; i < renderedData.data.length; i++) {
     const dot = new Sprite(renderTexture);
     dot.x = renderedData.data[i][0];
@@ -513,6 +606,15 @@ async function createContent(viewport, texture, renderedData) {
     sprites.addChild(dot);
   }
 }
+
+const throttledTooltipUpdate = throttle((data) => {
+  if (!viewport || !viewport.pluginOptions.tooltip.enabled) return;
+  const tooltipData = viewport.checkMouseOverPoint(data);
+  self.postMessage({
+    type: 'tooltip-update',
+    data: tooltipData
+  });
+}, THROTTLE_DELAY);
 
 
 self.onmessage = async event => {
@@ -575,6 +677,7 @@ self.onmessage = async event => {
     case 'mousemove':
       if (viewport) {
         viewport.handleMouseMove(data);
+        throttledTooltipUpdate(data);
       }
       break;
       
@@ -602,7 +705,7 @@ self.onmessage = async event => {
     case 'reset':
       if (viewport) {
         viewport.scale.set(1);
-        viewport.moveCenter(viewport._worldCenter);
+        viewport.moveToCenter();
       }
       break;
   }

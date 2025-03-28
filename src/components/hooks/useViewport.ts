@@ -1,9 +1,9 @@
-import { useEffect, useState, RefObject, useCallback } from 'react';
+import { useEffect, useState, RefObject, useCallback, useMemo } from 'react';
 import useOffscreenCanvas from './useOffscreenCanvas';
 import { useViewportWorker } from './useViewportWorker';
 import { useViewportEvents } from './useViewportEvents';
 import { useViewportActions, UseViewportActionsReturn } from './useViewportActions';
-import { PluginOptions, WorkerMessageType, ViewportInfo, WorkerMessage } from '../../types/viewPort'
+import { PluginOptions, WorkerMessageType, ViewportInfo, WorkerMessage, TooltipData } from '../../types/viewPort'
 
 type UseViewportProps<T> = {
   canvasRef: RefObject<HTMLCanvasElement | null>,
@@ -16,6 +16,10 @@ type ViewportHookReturn = {
   isLoading: boolean;
   viewportInfo: ViewportInfo;
   error: Error | null;
+  tooltip: {
+    isVisible: boolean;
+    data: TooltipData | null;
+  }
 }
 
 const useViewport = <T>({ 
@@ -27,7 +31,8 @@ const useViewport = <T>({
   const [viewportInfo, setViewportInfo] = useState<ViewportInfo>({ scale: 1, x: 0, y: 0 });
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
   const view = useOffscreenCanvas(canvasRef);
 
   const handleWorkerMessage = useCallback((event: MessageEvent<WorkerMessage>) => {
@@ -40,6 +45,10 @@ const useViewport = <T>({
       case WorkerMessageType.INIT_COMPLETE:
         setIsInitialized(true);
         setViewportInfo(data);
+        break;
+      case WorkerMessageType.TOOLTIP_UPDATE:
+        setShowTooltip(data !== null);
+        setTooltipData(data);
         break;
       default:
         break;
@@ -88,11 +97,17 @@ const useViewport = <T>({
     isInitialized
   });
 
+  const tooltip = useMemo(() => ({
+    isVisible: showTooltip,
+    data: tooltipData
+  }), [showTooltip, tooltipData]);
+
   const viewportActions = useViewportActions(isInitialized, postMessage);
 
   return {
     viewportActions,
     viewportInfo,
+    tooltip,
     isLoading,
     error
   };

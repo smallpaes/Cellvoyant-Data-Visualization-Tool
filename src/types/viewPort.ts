@@ -173,6 +173,10 @@ type MouseEdgesPluginOptions = {
   allowButtons: boolean;
 };
 
+type TooltipPluginOptions = {
+  enabled: boolean;
+}
+
 // Combine all plugin options into a single type
 /**
  * Options for configuring the viewport plugins.
@@ -196,13 +200,17 @@ export type PluginOptions = {
   snap?: Partial<SnapPluginOptions>;
   follow?: Partial<FollowPluginOptions>;
   mouseEdges?: Partial<MouseEdgesPluginOptions>;
+  tooltip?: Partial<TooltipPluginOptions>;
 };
 
-export type ViewportInfo ={
+/**
+ * Information about the current viewport state
+ */
+export type ViewportInfo = {
   scale: number;
   x: number;
   y: number;
-}
+};
 
 export enum WorkerMessageType {
   INIT = 'init',
@@ -215,65 +223,100 @@ export enum WorkerMessageType {
   MOUSE_DOWN = 'mousedown',
   MOUSE_MOVE = 'mousemove',
   MOUSE_UP = 'mouseup',
-}
+  TOOLTIP_UPDATE = 'tooltip-update',
+};
 
-export type WorkerMessage = {
+export type TooltipData = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type BaseWorkerMessage = {
   type: WorkerMessageType;
   data?: ViewportInfo;
-} & (
-  | {
-      type: WorkerMessageType.INIT;
-      canvas: OffscreenCanvas;
-      resolution: number;
-      imagePath: string;
-      renderedData: {
-        data: unknown;
-        size: number;
-      };
-      viewport: {
-        screenWidth: number;
-        screenHeight: number;
-        worldWidth: number;
-        worldHeight: number;
-        plugins: PluginOptions;
-      };
-    }
-  | {
-      type: WorkerMessageType.INIT_COMPLETE;
-      data: ViewportInfo;
-    }
-  | {
-      type: WorkerMessageType.VIEWPORT_UPDATE;
-      data: ViewportInfo;
-    }
-  | {
-      type: WorkerMessageType.WHEEL;
-      deltaY: number;
-      deltaMode: number;
-      clientX: number;
-      clientY: number;
-    }
-  | {
-      type: WorkerMessageType.MOUSE_DOWN | WorkerMessageType.MOUSE_UP;
-      button: number;
-      clientX: number;
-      clientY: number;
-    }
-  | {
-      type: WorkerMessageType.MOUSE_MOVE;
-      clientX: number;
-      clientY: number;
-    }
-  | {
-      type: WorkerMessageType.ZOOM;
-      scale: number;
-      center?: { x: number; y: number };
-    }
-  | {
-      type: WorkerMessageType.CENTER;
-      point: { x: number; y: number };
-    }
-  | {
-      type: WorkerMessageType.RESET;
-    }
-);
+};
+
+type InitMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.INIT;
+  canvas: OffscreenCanvas;
+  resolution: number;
+  imagePath: string;
+  renderedData: {
+    data: unknown;
+    size: number;
+  };
+  viewport: {
+    screenWidth: number;
+    screenHeight: number;
+    worldWidth: number;
+    worldHeight: number;
+    plugins: PluginOptions;
+  };
+};
+
+type InitCompleteMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.INIT_COMPLETE;
+  data: ViewportInfo;
+};
+
+type ViewportUpdateMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.VIEWPORT_UPDATE;
+  data: ViewportInfo;
+};
+
+type WheelMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.WHEEL;
+  deltaY: number;
+  deltaMode: number;
+  canvasX: number;
+  canvasY: number;
+};
+
+type MouseButtonMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.MOUSE_DOWN | WorkerMessageType.MOUSE_UP;
+  button: number;
+  clientX: number;
+  clientY: number;
+};
+
+type MouseMoveMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.MOUSE_MOVE;
+  clientX: number;
+  clientY: number;
+  canvasX: number;
+  canvasY: number;
+};
+
+type ZoomMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.ZOOM;
+  scale: number;
+  center?: { x: number; y: number };
+};
+
+type CenterMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.CENTER;
+  point: { x: number; y: number };
+};
+
+type ResetMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.RESET;
+};
+
+type TooltipUpdateMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.TOOLTIP_UPDATE;
+  data: null | TooltipData;
+};
+
+export type WorkerMessage =
+  | InitMessage
+  | InitCompleteMessage
+  | ViewportUpdateMessage
+  | WheelMessage
+  | MouseButtonMessage
+  | MouseMoveMessage
+  | ZoomMessage
+  | CenterMessage
+  | ResetMessage
+  | TooltipUpdateMessage;
