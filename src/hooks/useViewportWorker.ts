@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'react';
-import { WorkerMessage } from '../../types/viewPort';
+import { WorkerMessage } from '../types/viewPort';
 
 interface UseViewportWorkerProps {
   onMessage: (event: MessageEvent<WorkerMessage>) => void;
@@ -11,7 +11,7 @@ export const useViewportWorker = ({ onMessage, onError }: UseViewportWorkerProps
 
   const initWorker = useCallback(() => {
     try {
-      const worker = new Worker(new URL('../../workers/viewport/viewportWorker.js', import.meta.url), {
+      const worker = new Worker(new URL('../workers/viewport/viewportWorker.js', import.meta.url), {
         type: 'module'
       });
       workerRef.current = worker;

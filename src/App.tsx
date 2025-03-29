@@ -1,37 +1,15 @@
-// import { CellsCanvas } from './components/CellsCanvas'
-// import { CellsOffScreenCanvas } from './components/CellsOffScreenCanvas'
-// import { CellsViewPortCanvas } from './components/CellsViewPortCanvas';
-import { CellViewPortOffScreenCanvas } from './components/CellViewPortWorker'
-import { useState } from 'react'
+import { ViewPort } from './components/ViewPort'
 
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
   return (
     <div className="app-container">
-      {/* <h1>Cells Canvas</h1> */}
-      {/* <CellsCanvas 
-        width={1000}
-        height={1000}
-      /> */}
-      {/* <CellsOffScreenCanvas 
-        width={1000}
-        height={1000}
-      /> */}
-      {/* <CellsViewPortCanvas 
-        width={1000}
-        height={1000}
-      /> */}
-      <CellViewPortOffScreenCanvas 
+      <ViewPort 
         width={800}
         height={800}
         ratio={10}
       />
-      <button onClick={() => setCount(count + 1)}>
-        Click me
-      </button>
-      {count}
     </div>
   )
 }

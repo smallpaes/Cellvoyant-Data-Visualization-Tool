@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { WorkerMessageType, WorkerMessage } from '../../types/viewPort'
+import { WorkerMessageType, WorkerMessage } from '../types/viewPort'
 
 export type UseViewportActionsReturn = {
   zoomTo: (scale: number, centerX?: number, centerY?: number) => void;

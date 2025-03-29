@@ -1,12 +1,11 @@
 import { useRef, useMemo, useCallback } from 'react';
+
 import data from '../data/data.json'
-
-import useViewport from './hooks/useViewport';
-
+import useViewport from '../hooks/useViewport';
 import { PluginOptions } from '../types/viewPort'
 
 
-interface CellViewPortOffScreenCanvasProps {
+interface ViewPortProps {
   width?: number;
   height?: number;
   ratio?: number;
@@ -14,7 +13,7 @@ interface CellViewPortOffScreenCanvasProps {
 
 type CellType = [number, number, number, number]
 
-export const CellViewPortOffScreenCanvas: React.FC<CellViewPortOffScreenCanvasProps> = ({
+export const ViewPort: React.FC<ViewPortProps> = ({
   width = 800,
   height = 800,
   ratio = 1
@@ -52,7 +51,6 @@ export const CellViewPortOffScreenCanvas: React.FC<CellViewPortOffScreenCanvasPr
   const {
     isLoading,
     viewportActions,
-    viewportInfo,
     tooltip
   } = useViewport({ canvasRef, data: updatedData, pluginOptions });
 
@@ -89,9 +87,6 @@ export const CellViewPortOffScreenCanvas: React.FC<CellViewPortOffScreenCanvasPr
         <div>width: {tooltip.data?.width.toFixed(2)}</div>
         <div>height: {tooltip.data?.height.toFixed(2)}</div>
       </div>}
-      <div>Scale: {viewportInfo.scale ? viewportInfo.scale.toFixed(2) : "1.00"}</div>
-      <div>Position: X={viewportInfo.x ? viewportInfo.x.toFixed(0) : "0"}, Y={viewportInfo.y ? viewportInfo.y.toFixed(0) : "0"}</div>
-      <div>World Size: {width}x{height}</div>
       <div className="controls" style={{
         position: 'absolute',
         bottom: '50%',

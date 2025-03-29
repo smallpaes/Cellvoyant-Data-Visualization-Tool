@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { RefObject } from 'react';
-import { WorkerMessageType, WorkerMessage } from '../../types/viewPort';
-import { throttle } from '../../utils/throttle';
+import { WorkerMessageType, WorkerMessage } from '../types/viewPort';
+import { throttle } from '../utils/throttle';
 
 interface UseViewportEventsProps {
   canvasRef: RefObject<HTMLCanvasElement | null>;
