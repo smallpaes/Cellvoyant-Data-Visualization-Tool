@@ -9,19 +9,21 @@ import { PluginOptions } from '../types/viewPort'
 interface CellViewPortOffScreenCanvasProps {
   width?: number;
   height?: number;
+  ratio?: number;
 }
 
 type CellType = [number, number, number, number]
 
 export const CellViewPortOffScreenCanvas: React.FC<CellViewPortOffScreenCanvasProps> = ({
   width = 800,
-  height = 400,
+  height = 800,
+  ratio = 1
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const updatedData = useMemo(() => {{
-    return (data as CellType[]).map(([x, y, w, h]) => [x / 8, y  / 8, w, h])
-  }}, [])
+    return (data as CellType[]).map(([x, y, w, h]) => [x / ratio, y  / ratio, w, h])
+  }}, [ratio])
 
   const pluginOptions: PluginOptions = useMemo(() => ({
     clampZoom: {

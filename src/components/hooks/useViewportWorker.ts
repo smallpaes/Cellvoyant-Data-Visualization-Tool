@@ -11,7 +11,7 @@ export const useViewportWorker = ({ onMessage, onError }: UseViewportWorkerProps
 
   const initWorker = useCallback(() => {
     try {
-      const worker = new Worker(new URL('../../workers/renderViewPort.js', import.meta.url), {
+      const worker = new Worker(new URL('../../workers/viewport/viewportWorker.js', import.meta.url), {
         type: 'module'
       });
       workerRef.current = worker;

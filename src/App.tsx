@@ -24,8 +24,9 @@ function App() {
         height={1000}
       /> */}
       <CellViewPortOffScreenCanvas 
-        width={1000}
-        height={1000}
+        width={800}
+        height={800}
+        ratio={10}
       />
       <button onClick={() => setCount(count + 1)}>
         Click me

@@ -241,7 +241,6 @@ type BaseWorkerMessage = {
 type InitMessage = BaseWorkerMessage & {
   type: WorkerMessageType.INIT;
   canvas: OffscreenCanvas;
-  resolution: number;
   imagePath: string;
   renderedData: {
     data: unknown;

@@ -6,6 +6,8 @@ import { useViewportActions, UseViewportActionsReturn } from './useViewportActio
 import { PluginOptions, WorkerMessageType, ViewportInfo, WorkerMessage, TooltipData } from '../../types/viewPort'
 
 type UseViewportProps<T> = {
+  screenWidth?: number;
+  screenHeight?: number;
   canvasRef: RefObject<HTMLCanvasElement | null>,
   data: T
   pluginOptions?: PluginOptions
@@ -23,6 +25,8 @@ type ViewportHookReturn = {
 }
 
 const useViewport = <T>({ 
+  screenWidth,
+  screenHeight,
   canvasRef, 
   data, 
   pluginOptions = {}
@@ -64,25 +68,24 @@ const useViewport = <T>({
     if (!workerRef.current || !view || !canvasRef.current) return;
     const canvas = canvasRef.current;
     const { width, height } = canvas;
-    const resolution = window.devicePixelRatio;
+
     postMessage({
       type: WorkerMessageType.INIT,
       canvas: view,
-      resolution,
       imagePath: '/images/cell.jpg',
       renderedData: {
         data,
         size: 1
       },
       viewport: {
-        screenWidth: width,
-        screenHeight: height,
+        screenWidth: screenWidth || width,
+        screenHeight: screenHeight || height,
         worldWidth: width,
         worldHeight: height,
         plugins: pluginOptions
       }
     }, view);
-  }, [view, canvasRef, data, pluginOptions, workerRef, postMessage]);
+  }, [view, canvasRef, data, pluginOptions, workerRef, postMessage, screenWidth, screenHeight]);
 
   useEffect(() => {
     if (!canvasRef.current || !view) return;
