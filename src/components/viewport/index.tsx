@@ -1,8 +1,8 @@
 import { useRef, useMemo, useCallback } from 'react';
 
-import data from '../data/data.json'
-import useViewport from '../hooks/useViewport';
-import { PluginOptions } from '../types/viewPort'
+import data from '../../data/data.json'
+import useViewport from '../../hooks/viewport/useViewport';
+import { PluginOptions } from '../../types/viewPort'
 
 
 interface ViewPortProps {

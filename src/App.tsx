@@ -1,4 +1,4 @@
-import { ViewPort } from './components/ViewPort'
+import { ViewPort } from './components/viewport'
 
 import './App.css'
 

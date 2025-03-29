@@ -1,9 +1,9 @@
 import { useEffect, useState, RefObject, useCallback, useMemo } from 'react';
-import useOffscreenCanvas from './useOffscreenCanvas';
+import useOffscreenCanvas from '../useOffscreenCanvas';
 import { useViewportWorker } from './useViewportWorker';
 import { useViewportEvents } from './useViewportEvents';
 import { useViewportActions, UseViewportActionsReturn } from './useViewportActions';
-import { PluginOptions, WorkerMessageType, ViewportInfo, WorkerMessage, TooltipData } from '../types/viewPort'
+import { PluginOptions, WorkerMessageType, ViewportInfo, WorkerMessage, TooltipData } from '../../types/viewPort'
 
 type UseViewportProps<T> = {
   screenWidth?: number;
