@@ -28,6 +28,12 @@ export class OffscreenViewport extends Container {
     // Create RBush index
     this.dotIndex = new RBush();
 
+    // Sprite mapping management
+    this.spriteMap = new Map();
+    this._lastHoveredPoint = null;
+    this.pointTexture = null;
+    this.hoveredPointTexture = null;
+
     // Store base dot info (before any scaling)
     this.basePointSize = POINT_DEFAULTS.basePointSize;
     this.basePointRadius = this.basePointSize / 2;
@@ -227,53 +233,88 @@ export class OffscreenViewport extends Container {
     }
   }
 
+  findClosestPoint(points, mousePosition, searchRadius) {
+    let closestPoint = null;
+    let closestDistance = null;
+
+    for (const point of points) {
+      const distance = Math.sqrt(
+        Math.pow(point.x - mousePosition.x, 2) + 
+        Math.pow(point.y - mousePosition.y, 2)
+      );
+
+      if (distance < searchRadius && (closestDistance === null || distance < closestDistance)) {
+        closestPoint = point;
+        closestDistance = distance;
+      }
+    }
+
+    return closestPoint;
+  }
+
+  resetLastHoveredPoint() {
+    if (!this._lastHoveredPoint) return;
+    const lastSprite = this.spriteMap.get(this._lastHoveredPoint.id);
+    if (lastSprite) {
+      lastSprite.texture = this.pointTexture;
+    }
+    this._lastHoveredPoint = null;
+  }
+
+  updateHoverState(closestPoint) {
+    if (!closestPoint) {
+      this.resetLastHoveredPoint();
+      return;
+    }
+
+    const isSamePoint = this._lastHoveredPoint && this._lastHoveredPoint.id === closestPoint.id;
+    if (isSamePoint) return;
+
+    this.resetLastHoveredPoint();
+
+    // Update new hovered point
+    const sprite = this.spriteMap.get(closestPoint.id);
+    if (!sprite) return;
+    sprite.texture = this.hoveredPointTexture;
+    this._lastHoveredPoint = closestPoint;
+  }
+
   /**
    * Check if the mouse is over a point
    * @param {object} event - Mouse event data
    * @returns {boolean} True if the mouse is over a point
    */
   checkMouseOverPoint(event) {
+    // Convert mouse screen coordinates to world coordinates
     const worldPos = this.toWorld({ x: event.canvasX, y: event.canvasY });
     
     // Calculate search radius in world coordinates
-    // We divide by scale because we're converting from screen to world coordinates
-    const currentDotRadius = (this.basePointRadius * this.scaleFactor);
+    const currentPointRadius = this.basePointRadius * this.scaleFactor
 
     // Define search box in world coordinates
     const searchBox = {
       minX: worldPos.x,
       minY: worldPos.y,
-      maxX: worldPos.x ,
+      maxX: worldPos.x,
       maxY: worldPos.y
     };
 
     // Perform spatial query to find dots within the search box
     const results = this.dotIndex.search(searchBox);
 
-    // Validate results
-    let closestDot = null;
-    let closestDistance = null;
+    const closestPoint = this.findClosestPoint(results, worldPos, currentPointRadius);
 
-    for (const dot of results) {
-      const distance = Math.sqrt(
-        Math.pow(dot.x - worldPos.x, 2) + 
-        Math.pow(dot.y - worldPos.y, 2)
-      );
+    // Handle hover state changes
+    this.updateHoverState(closestPoint);
 
-      if (distance < currentDotRadius && (closestDistance === null || distance < closestDistance)) {
-        closestDot = dot;
-        closestDistance = distance;
-      }
-    }
+    if (closestPoint === null) return null;
 
-    if (closestDot === null) return null;
-
-     return {
-      ...this.toScreen({ x: closestDot.x, y: closestDot.y }),
-      width: closestDot.width,
-      height: closestDot.height,
-      originalX: closestDot.x,
-      originalY: closestDot.y
+    return {
+      ...this.toScreen({ x: closestPoint.x, y: closestPoint.y }),
+      width: closestPoint.width,
+      height: closestPoint.height,
+      originalX: closestPoint.x,
+      originalY: closestPoint.y
     };
   }
   

@@ -21,7 +21,8 @@ export const POINT_DEFAULTS = {
   resolution: 2,
   lineWidth: 1,
   lineColor: 0xFF0000,
-  lineAlpha: 0.5
+  lineAlpha: 0.5,
+  hoverLineAlpha: 1
 };
 
 export const DEFAULT_PLUGIN_OPTIONS = {
