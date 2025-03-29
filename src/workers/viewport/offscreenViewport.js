@@ -484,6 +484,26 @@ export class OffscreenViewport extends Container {
     
     this._dirty = true;
   }
+
+  /**
+   * Get all the visible points in the viewport
+   * @returns {object[]} Array of visible points
+   */
+  getVisiblePoints() {
+    // Convert viewport bounds to world coordinates
+    const visibleBounds = {
+      // Left edge of viewport in world coordinates
+      minX: (-this.x) / this.scale.x,
+      // Top edge of viewport in world coordinates
+      minY: (-this.y) / this.scale.y,
+      // Right edge of viewport in world coordinates
+      maxX: (-this.x + this.screenWidth) / this.scale.x,
+      // Bottom edge of viewport in world coordinates
+      maxY: (-this.y + this.screenHeight) / this.scale.y
+    };
+    // Search the R-tree index for points within the visible bounds
+    return this.dotIndex.search(visibleBounds);
+  }
   
   /**
    * Get the current viewport state for sending to main thread

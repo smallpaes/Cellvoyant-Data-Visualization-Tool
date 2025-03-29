@@ -3,7 +3,7 @@ import useOffscreenCanvas from '../useOffscreenCanvas';
 import { useViewportWorker } from './useViewportWorker';
 import { useViewportEvents } from './useViewportEvents';
 import { useViewportActions, UseViewportActionsReturn } from './useViewportActions';
-import { PluginOptions, WorkerMessageType, ViewportInfo, WorkerMessage, TooltipData } from '../../types/viewPort'
+import { PluginOptions, WorkerMessageType, ViewportInfo, WorkerMessage, TooltipData, VisiblePoint } from '../../types/viewPort';
 
 type UseViewportProps<T> = {
   screenWidth?: number;
@@ -22,6 +22,7 @@ type ViewportHookReturn = {
     isVisible: boolean;
     data: TooltipData | null;
   }
+  visiblePoints: VisiblePoint[];
 }
 
 const useViewport = <T>({ 
@@ -38,13 +39,13 @@ const useViewport = <T>({
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
   const view = useOffscreenCanvas(canvasRef);
+  const [visiblePoints, setVisiblePoints] = useState<VisiblePoint[]>([]);
 
   const handleWorkerMessage = useCallback((event: MessageEvent<WorkerMessage>) => {
     const { type, data } = event.data;
     switch (type) {
       case WorkerMessageType.VIEWPORT_UPDATE:
         setViewportInfo(data);
-        setIsLoading(false);
         break;
       case WorkerMessageType.INIT_COMPLETE:
         setIsInitialized(true);
@@ -53,6 +54,12 @@ const useViewport = <T>({
       case WorkerMessageType.TOOLTIP_UPDATE:
         setShowTooltip(data !== null);
         setTooltipData(data);
+        break;
+      case WorkerMessageType.INITIAL_RENDER_COMPLETE:
+        setIsLoading(false);
+        break;
+      case WorkerMessageType.VISIBLE_POINTS_UPDATE:
+        setVisiblePoints(data);
         break;
       default:
         break;
@@ -110,6 +117,7 @@ const useViewport = <T>({
   return {
     viewportActions,
     viewportInfo,
+    visiblePoints,
     tooltip,
     isLoading,
     error

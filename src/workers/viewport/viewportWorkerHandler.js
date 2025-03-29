@@ -3,8 +3,19 @@ import { OffscreenViewport } from './offscreenViewport';
 import { createContent } from './viewportContent';
 import { throttle } from '../../utils/throttle';
 import { THROTTLE_DELAY } from './viewportConstants';
+import { debounce } from '../../utils/debounce';
 
 let app, viewport;
+
+function updateVisiblePoints() {
+  const visiblePoints = viewport.getVisiblePoints();
+  self.postMessage({
+    type: 'visible-points-update',
+    data: visiblePoints
+  });
+}
+
+const debouncedUpdateVisiblePoints = debounce(updateVisiblePoints, 100);
 
 // Set up render loop for application
 function setupRenderLoop() {
@@ -13,6 +24,7 @@ function setupRenderLoop() {
       type: 'viewport-update',
       data: viewport.getState()
     });
+    debouncedUpdateVisiblePoints();
   }
 }
 
@@ -71,7 +83,7 @@ async function handleInit(data, renderedData) {
 
   // Send rendered message after first render
   app.renderer.once('postrender', () => {
-    self.postMessage({ type: 'RENDERED' });
+    self.postMessage({ type: 'initial-render-complete' });
   });
 } 
 

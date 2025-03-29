@@ -216,6 +216,7 @@ export enum WorkerMessageType {
   INIT = 'init',
   INIT_COMPLETE = 'init-complete',
   VIEWPORT_UPDATE = 'viewport-update',
+  VISIBLE_POINTS_UPDATE = 'visible-points-update',
   ZOOM = 'zoom',
   CENTER = 'center',
   RESET = 'reset',
@@ -225,6 +226,7 @@ export enum WorkerMessageType {
   MOUSE_UP = 'mouseup',
   MOUSE_LEAVE = 'mouseleave',
   TOOLTIP_UPDATE = 'tooltip-update',
+  INITIAL_RENDER_COMPLETE = 'initial-render-complete',
 };
 
 export type TooltipData = {
@@ -313,6 +315,27 @@ type MouseLeaveMessage = BaseWorkerMessage & {
   type: WorkerMessageType.MOUSE_LEAVE;
 };
 
+export type VisiblePoint = {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+  x: number;
+  y: number;
+  id: string;
+  width: number;
+  height: number;
+}
+
+type InitialRenderCompleteMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.INITIAL_RENDER_COMPLETE;
+};
+
+type VisiblePointsUpdateMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.VISIBLE_POINTS_UPDATE;
+  data: VisiblePoint[];
+};
+
 export type WorkerMessage =
   | InitMessage
   | InitCompleteMessage
@@ -324,4 +347,6 @@ export type WorkerMessage =
   | CenterMessage
   | ResetMessage
   | TooltipUpdateMessage
-  | MouseLeaveMessage;
+  | MouseLeaveMessage
+  | VisiblePointsUpdateMessage
+  | InitialRenderCompleteMessage;
