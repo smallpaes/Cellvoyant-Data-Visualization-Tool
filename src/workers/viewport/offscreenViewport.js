@@ -351,19 +351,29 @@ export class OffscreenViewport extends Container {
       this._dirty = true;
     }
   }
+
+  resetDragData() {
+    const dragData = this.plugins.drag;
+    if (dragData.active && dragData.last) {
+      dragData.active = false;
+      dragData.last = null;
+    }
+  }
   
   /**
    * Handle mouse up event to end dragging
    * @param {object} event - Mouse event data
    */
   handleMouseUp(event) {
-    const dragData = this.plugins.drag;
     const allowedButtons = this.pluginOptions.drag.mouseButtons === 'all' ? [0, 1, 2] : [0];
-    
     if (allowedButtons.includes(event.button)) {
-      dragData.active = false;
-      dragData.last = null;
+      this.resetDragData();
     }
+  }
+
+  handleMouseLeave() {
+    this.resetDragData();
+    this.resetLastHoveredPoint();
   }
   
   /**

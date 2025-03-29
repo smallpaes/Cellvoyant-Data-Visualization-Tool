@@ -223,6 +223,7 @@ export enum WorkerMessageType {
   MOUSE_DOWN = 'mousedown',
   MOUSE_MOVE = 'mousemove',
   MOUSE_UP = 'mouseup',
+  MOUSE_LEAVE = 'mouseleave',
   TOOLTIP_UPDATE = 'tooltip-update',
 };
 
@@ -308,6 +309,10 @@ type TooltipUpdateMessage = BaseWorkerMessage & {
   data: null | TooltipData;
 };
 
+type MouseLeaveMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.MOUSE_LEAVE;
+};
+
 export type WorkerMessage =
   | InitMessage
   | InitCompleteMessage
@@ -318,4 +323,5 @@ export type WorkerMessage =
   | ZoomMessage
   | CenterMessage
   | ResetMessage
-  | TooltipUpdateMessage;
+  | TooltipUpdateMessage
+  | MouseLeaveMessage;

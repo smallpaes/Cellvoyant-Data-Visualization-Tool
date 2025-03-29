@@ -25,6 +25,15 @@ const throttledTooltipUpdate = throttle((data) => {
   });
 }, THROTTLE_DELAY);
 
+const handleMouseLeave = () => {
+  if (!viewport) return;
+  viewport.handleMouseLeave();
+  self.postMessage({
+    type: 'tooltip-update',
+    data: null
+  });
+};
+
 async function handleInit(data, renderedData) {
   // Initialize PixiJS application
   app = new Application({ 
@@ -96,6 +105,12 @@ export function handleViewportWorkerMessage(event) {
     case 'mouseup':
       if (viewport) {
         viewport.handleMouseUp(data);
+      }
+      break;
+
+    case 'mouseleave':
+      if (viewport) {
+        handleMouseLeave()
       }
       break;
 
