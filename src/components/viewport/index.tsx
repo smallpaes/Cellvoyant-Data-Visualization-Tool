@@ -66,7 +66,6 @@ export const ViewPort: React.FC<ViewPortProps> = ({
       position: 'relative',
     }}>
       <canvas ref={canvasRef} width={width} height={height} />
-      {isLoading && <div>Loading...</div>}
       {tooltip.isVisible && <div
         style={{
           position: 'absolute',
@@ -87,17 +86,21 @@ export const ViewPort: React.FC<ViewPortProps> = ({
         <div>width: {tooltip.data?.width.toFixed(2)}</div>
         <div>height: {tooltip.data?.height.toFixed(2)}</div>
       </div>}
-      <div className="controls" style={{
-        position: 'absolute',
-        bottom: '50%',
-        left: '100%',
-        transform: 'translateY(-50%)'
-      }}>
-        <button onClick={handleZoomIn}>Zoom In</button>
-        <button onClick={handleZoomOut}>Zoom Out</button>
-        <button onClick={handleCenter}>Center</button>
-        <button onClick={handleReset}>Reset</button>
-      </div>
+      {
+        !isLoading && (
+           <div className="controls" style={{
+            position: 'absolute',
+            bottom: '50%',
+            left: '100%',
+            transform: 'translateY(-50%)'
+          }}>
+            <button onClick={handleZoomIn}>Zoom In</button>
+            <button onClick={handleZoomOut}>Zoom Out</button>
+            <button onClick={handleCenter}>Center</button>
+            <button onClick={handleReset}>Reset</button>
+          </div>
+        )
+      }
     </section>
   )
 };
