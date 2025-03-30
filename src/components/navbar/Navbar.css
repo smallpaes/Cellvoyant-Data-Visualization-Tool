@@ -3,6 +3,10 @@
   box-shadow: var(--shadow-sm);
   width: 100%;
   height: var(--navbar-height);
+  z-index: var(--z-index-navbar);
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 .navbar-content {

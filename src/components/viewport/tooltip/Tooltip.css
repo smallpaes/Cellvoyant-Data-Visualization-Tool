@@ -1,7 +1,5 @@
 .tooltip {
   position: absolute;
-  top: calc(attr(data-top px) + attr(data-offset px));
-  left: calc(attr(data-left px) + attr(data-offset px));
   background-color: var(--component-background);
   padding: var(--spacing-sm);
   border-radius: var(--border-radius-sm);

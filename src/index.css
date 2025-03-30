@@ -60,6 +60,10 @@
   /* Navbar */
   --navbar-height: 53px;
   --navbar-max-width: var(--max-width-xl);
+
+  /* Z-index */
+  --z-index-navbar: 2;
+  --z-index-app-content: 1;
 }
 
 h1, h2, h3, h4, h5, h6 {
