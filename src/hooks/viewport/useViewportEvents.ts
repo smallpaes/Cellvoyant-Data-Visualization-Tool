@@ -53,15 +53,14 @@ export const useViewportEvents = ({ canvasRef, postMessage, isInitialized }: Use
     e.stopPropagation();
     if (!canvasRef.current || !rectRef.current) return;
 
-    const canvasX = e.clientX - rectRef.current.left;
-    const canvasY = e.clientY - rectRef.current.top;
-
-    const isOutsideCanvas = canvasX < 0 || canvasX > rectRef.current.width || canvasY < 0 || canvasY > rectRef.current.height;
-
+    const isOutsideCanvas = e.target !== canvasRef.current;
     if (isOutsideCanvas) {
       postMessage({ type: WorkerMessageType.MOUSE_LEAVE });
       return;
     }
+
+    const canvasX = e.clientX - rectRef.current.left;
+    const canvasY = e.clientY - rectRef.current.top;
 
     postMessage({
       type: WorkerMessageType.MOUSE_MOVE,

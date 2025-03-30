@@ -1,15 +1,18 @@
 import { useRef, useMemo, useCallback, useState } from 'react';
+import './Viewport.css';
 
 import data from '../../data/data.json'
 import useViewport from '../../hooks/viewport/useViewport';
 import { PluginOptions } from '../../types/viewPort'
 import { Histogram } from '../chart/histogram';
 import { Toolbox } from './toolbox';
+import { Tooltip } from './tooltip';
 
 interface ViewPortProps {
   width?: number;
   height?: number;
   ratio?: number;
+  title?: string;
 }
 
 type CellType = [number, number, number, number]
@@ -17,7 +20,8 @@ type CellType = [number, number, number, number]
 export const ViewPort: React.FC<ViewPortProps> = ({
   width = 800,
   height = 800,
-  ratio = 1
+  ratio = 1,
+  title
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [showHistogram, setShowHistogram] = useState(false);
@@ -67,46 +71,28 @@ export const ViewPort: React.FC<ViewPortProps> = ({
   const handleReset = useCallback(() => reset(), [reset]);
 
   return (
-    <section style={{
-      position: 'relative',
-    }}>
-      <canvas ref={canvasRef} width={width} height={height} />
-      {tooltip.isVisible && <div
-        style={{
-          position: 'absolute',
-          top: tooltip.data?.y || 0 + 100,
-          left: tooltip.data?.x || 0 + 100,
-          backgroundColor: 'white',
-          border: '1px solid black',
-          padding: '10px',
-          borderRadius: '5px',
-          color: 'black',
-          textAlign: 'left',
-          minWidth: 'fit-content',
-          pointerEvents: 'none'
-        }}
-      >
-        <div>x: {tooltip.data?.x.toFixed(2)}</div>  
-        <div>y: {tooltip.data?.y.toFixed(2)}</div>
-        <div>width: {tooltip.data?.width.toFixed(2)}</div>
-        <div>height: {tooltip.data?.height.toFixed(2)}</div>
-      </div>}
-      <Toolbox
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        onCenter={handleCenter}
-        onReset={handleReset}
-        onToggleHistogram={() => setShowHistogram(!showHistogram)}
-        isHistogramVisible={showHistogram}
-        isDisabled={isLoading}
-      />
-      <Histogram
-        data={areaData}
-        visible={showHistogram}
-        onToggleVisibility={() => setShowHistogram(false)}
-        title="Distribution"
-        subtitle={`${visiblePoints.length} boxes visible`}
-      />
+    <section className="viewport">
+      <h2 className="viewport__title">{title}</h2>
+      <div className="viewport__content">
+        <canvas ref={canvasRef} width={width} height={height} className="viewport__canvas" />
+        <Toolbox
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onCenter={handleCenter}
+          onReset={handleReset}
+          onToggleHistogram={() => setShowHistogram(!showHistogram)}
+          isHistogramVisible={showHistogram}
+          isDisabled={isLoading}
+        />
+        <Tooltip isVisible={tooltip.isVisible} data={tooltip.data} />
+        <Histogram
+          data={areaData}
+          visible={showHistogram}
+          onToggleVisibility={() => setShowHistogram(false)}
+          title="Distribution"
+          subtitle={`${visiblePoints.length} boxes visible`}
+        />
+      </div>
     </section>
   )
 };

@@ -61,7 +61,7 @@ export const Histogram: React.FC<HistogramProps> = ({
         {
           title && subtitle && (
             <div className="histogram__title-container">
-              <h3 className="histogram__title">{title}</h3>
+              <h2 className="histogram__title">{title}</h2>
               <h6 className="histogram__subtitle">{subtitle}</h6>
             </div>
           )

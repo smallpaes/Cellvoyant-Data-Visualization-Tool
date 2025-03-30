@@ -1,0 +1,27 @@
+.viewport {
+  position: relative;
+  background-color: var(--component-background);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  width: fit-content;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  align-items: start;
+
+  .viewport__title {
+    font-weight: var(--font-weight-medium);
+  }
+
+  .viewport__content {
+    position: relative;
+    display: block;
+  }
+
+  .viewport__canvas {
+    border-radius: var(--border-radius-sm);
+    display: block;
+    line-height: 0;
+  }
+}

@@ -1,6 +1,12 @@
 import React from 'react';
 import './Toolbox.css';
 
+import ZoomInIcon from '../../../assets/svg/icons/zoom-in.svg';
+import ZoomOutIcon from '../../../assets/svg/icons/zoom-out.svg';
+import ResetIcon from '../../../assets/svg/icons/reset.svg';
+import CenterFocusIcon from '../../../assets/svg/icons/center-focus.svg';
+import BarChartIcon from '../../../assets/svg/icons/bar-chart.svg';
+
 interface ToolboxProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -22,56 +28,59 @@ export const Toolbox: React.FC<ToolboxProps> = ({
 }) => {
   return (
     <div className="toolbox">
-      <div className="toolbox__section">
-        <h4 className="toolbox__section-title">View Controls</h4>
-        <div className="toolbox__controls">
-          <button
-            onClick={onZoomIn}
-            className="toolbox__button"
-            disabled={isDisabled}
-            aria-label="Zoom in"
-          >
-            <span className="toolbox__icon">+</span>
-          </button>
-          <button
-            onClick={onZoomOut}
-            className="toolbox__button"
-            disabled={isDisabled}
-            aria-label="Zoom out"
-          >
-            <span className="toolbox__icon">−</span>
-          </button>
-          <button
-            onClick={onCenter}
-            className="toolbox__button"
-            disabled={isDisabled}
-            aria-label="Center view"
-          >
-            <span className="toolbox__icon">⊙</span>
-          </button>
-          <button
-            onClick={onReset}
-            className="toolbox__button"
-            disabled={isDisabled}
-            aria-label="Reset view"
-          >
-            <span className="toolbox__icon">↺</span>
-          </button>
-        </div>
+      <div className="toolbox__controls">
+        <button
+          onClick={onZoomIn}
+          className="toolbox__button"
+          disabled={isDisabled}
+          aria-label="Zoom in"
+          title="Zoom in"
+          type="button"
+        >
+          <ZoomInIcon />
+        </button>
+        <button
+          onClick={onZoomOut}
+          className="toolbox__button"
+          disabled={isDisabled}
+          aria-label="Zoom out"
+          title="Zoom out"
+          type="button"
+        >
+          <ZoomOutIcon />
+        </button>
+        <button
+          onClick={onCenter}
+          className="toolbox__button"
+          disabled={isDisabled}
+          aria-label="Center view"
+          title="Center view"
+          type="button"
+        >
+          <CenterFocusIcon />
+        </button>
+        <button
+          onClick={onReset}
+          className="toolbox__button"
+          disabled={isDisabled}
+          aria-label="Reset view"
+          title="Reset view"
+          type="button"
+        >
+          <ResetIcon />
+        </button>
       </div>
-
-      <div className="toolbox__section">
-        <h4 className="toolbox__section-title">Analysis</h4>
+      <hr className="toolbox__divider" />
+      <div className="toolbox__controls">
         <button
           onClick={onToggleHistogram}
-          className={`toolbox__button toolbox__button--primary ${
-            isHistogramVisible ? 'toolbox__button--active' : ''
-          }`}
+          className={`toolbox__button`}
           disabled={isDisabled}
           aria-label={isHistogramVisible ? 'Hide histogram' : 'Show histogram'}
+          title={isHistogramVisible ? 'Hide histogram' : 'Show histogram'}
+          type="button"
         >
-          <span className="toolbox__icon">📊</span>
-          <span className="toolbox__label">Size Distribution</span>
+          <BarChartIcon />
         </button>
       </div>
     </div>

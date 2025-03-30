@@ -20,9 +20,8 @@ export const POINT_DEFAULTS = {
   basePointSize: 8,
   resolution: 2,
   lineWidth: 1,
-  lineColor: 0xFF0000,
+  lineColor: 0xDC2626,
   lineAlpha: 0.5,
-  hoverLineAlpha: 1
 };
 
 export const DEFAULT_PLUGIN_OPTIONS = {
