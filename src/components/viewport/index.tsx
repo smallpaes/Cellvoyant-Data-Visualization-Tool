@@ -4,6 +4,7 @@ import data from '../../data/data.json'
 import useViewport from '../../hooks/viewport/useViewport';
 import { PluginOptions } from '../../types/viewPort'
 import { Histogram } from '../chart/histogram';
+import { Toolbox } from './toolbox';
 
 interface ViewPortProps {
   width?: number;
@@ -90,36 +91,15 @@ export const ViewPort: React.FC<ViewPortProps> = ({
         <div>width: {tooltip.data?.width.toFixed(2)}</div>
         <div>height: {tooltip.data?.height.toFixed(2)}</div>
       </div>}
-      {
-        !isLoading && (
-           <div className="controls" style={{
-            position: 'absolute',
-            bottom: '50%',
-            left: '100%',
-            transform: 'translateY(-50%)'
-          }}>
-            <button onClick={handleZoomIn}>Zoom In</button>
-            <button onClick={handleZoomOut}>Zoom Out</button>
-            <button onClick={handleCenter}>Center</button>
-            <button onClick={handleReset}>Reset</button>
-          </div>
-        )
-      }
-      <button 
-        onClick={() => setShowHistogram(!showHistogram)}
-        style={{
-          position: 'fixed',
-          bottom: 20,
-          left: 20,
-          padding: '8px 12px',
-          background: '#4285F4',
-          color: 'white',
-          border: 'none',
-          borderRadius: 4
-        }}
-      >
-        {showHistogram ? 'Hide' : 'Show'} Distribution
-      </button>
+      <Toolbox
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onCenter={handleCenter}
+        onReset={handleReset}
+        onToggleHistogram={() => setShowHistogram(!showHistogram)}
+        isHistogramVisible={showHistogram}
+        isDisabled={isLoading}
+      />
       <Histogram
         data={areaData}
         visible={showHistogram}
