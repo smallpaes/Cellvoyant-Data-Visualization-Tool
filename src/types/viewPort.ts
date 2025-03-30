@@ -316,13 +316,8 @@ type MouseLeaveMessage = BaseWorkerMessage & {
 };
 
 export type VisiblePoint = {
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
   x: number;
   y: number;
-  id: string;
   width: number;
   height: number;
 }

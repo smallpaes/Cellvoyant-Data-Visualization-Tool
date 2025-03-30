@@ -502,7 +502,12 @@ export class OffscreenViewport extends Container {
       maxY: (-this.y + this.screenHeight) / this.scale.y
     };
     // Search the R-tree index for points within the visible bounds
-    return this.dotIndex.search(visibleBounds);
+    return this.dotIndex.search(visibleBounds).map(point => ({
+      x: point.x,
+      y: point.y,
+      width: point.width,
+      height: point.height
+    }));
   }
   
   /**
