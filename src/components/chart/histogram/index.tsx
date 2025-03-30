@@ -17,7 +17,7 @@ export const Histogram: React.FC<HistogramProps> = ({
   data,
   visible,
   onToggleVisibility,
-  customConfig = {},
+  customConfig,
   title,
   subtitle
 }) => {
@@ -31,12 +31,12 @@ export const Histogram: React.FC<HistogramProps> = ({
   
   useEffect(() => {
     if (!containerRef.current || !visible || boxSizes.length === 0) return;
-    
+
     containerRef.current.innerHTML = '';
     
     const chart = plot({
       ...BASE_CHART_CONFIG,
-      ...customConfig,
+      ...(customConfig || {}),
       y: { label: "Count" },
       x: { label: "Box Area" },
       marks: [

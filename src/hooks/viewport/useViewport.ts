@@ -30,7 +30,7 @@ const useViewport = <T>({
   screenHeight,
   canvasRef, 
   data, 
-  pluginOptions = {}
+  pluginOptions
 }: UseViewportProps<T>): ViewportHookReturn => {
   const [error, setError] = useState<Error | null>(null);
   const [viewportInfo, setViewportInfo] = useState<ViewportInfo>({ scale: 1, x: 0, y: 0 });
@@ -89,7 +89,7 @@ const useViewport = <T>({
         screenHeight: screenHeight || height,
         worldWidth: width,
         worldHeight: height,
-        plugins: pluginOptions
+        plugins: pluginOptions || {}
       }
     }, view);
   }, [view, canvasRef, data, pluginOptions, workerRef, postMessage, screenWidth, screenHeight]);
