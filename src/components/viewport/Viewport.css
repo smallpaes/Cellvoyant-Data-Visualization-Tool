@@ -24,4 +24,10 @@
     display: block;
     line-height: 0;
   }
+
+  .viewport__skeleton {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
 }

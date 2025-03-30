@@ -7,6 +7,7 @@ import { PluginOptions } from '../../types/viewPort'
 import { Histogram } from '../chart/histogram';
 import { Toolbox } from './toolbox';
 import { Tooltip } from './tooltip';
+import { Skeleton } from '../skeleton';
 
 interface ViewPortProps {
   width?: number;
@@ -75,6 +76,7 @@ export const ViewPort: React.FC<ViewPortProps> = ({
       <h2 className="viewport__title">{title}</h2>
       <div className="viewport__content">
         <canvas ref={canvasRef} width={width} height={height} className="viewport__canvas" />
+        {isLoading && <Skeleton width={width} height={height} className="viewport__skeleton" />}
         <Toolbox
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}

@@ -27,7 +27,7 @@ export const Toolbox: React.FC<ToolboxProps> = ({
   isDisabled = false
 }) => {
   return (
-    <div className="toolbox">
+    <div className={`toolbox ${isDisabled ? 'toolbox--disabled' : ''}`}>
       <div className="toolbox__controls">
         <button
           onClick={onZoomIn}
