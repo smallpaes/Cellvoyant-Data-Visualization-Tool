@@ -1,9 +1,9 @@
-import { useRef, useMemo, useCallback } from 'react';
+import { useRef, useMemo, useCallback, useState } from 'react';
 
 import data from '../../data/data.json'
 import useViewport from '../../hooks/viewport/useViewport';
 import { PluginOptions } from '../../types/viewPort'
-
+import { Histogram } from '../chart/histogram';
 
 interface ViewPortProps {
   width?: number;
@@ -19,6 +19,7 @@ export const ViewPort: React.FC<ViewPortProps> = ({
   ratio = 1
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [showHistogram, setShowHistogram] = useState(false);
 
   const updatedData = useMemo(() => {{
     return (data as CellType[]).map(([x, y, w, h]) => [x / ratio, y  / ratio, w, h])
@@ -51,8 +52,11 @@ export const ViewPort: React.FC<ViewPortProps> = ({
   const {
     isLoading,
     viewportActions,
+    visiblePoints,
     tooltip
   } = useViewport({ canvasRef, data: updatedData, pluginOptions });
+
+  const areaData = useMemo(() => visiblePoints.map(box => box.width * box.height), [visiblePoints])
 
   const { zoomTo, centerOn, reset } = viewportActions;
 
@@ -101,6 +105,28 @@ export const ViewPort: React.FC<ViewPortProps> = ({
           </div>
         )
       }
+      <button 
+        onClick={() => setShowHistogram(!showHistogram)}
+        style={{
+          position: 'fixed',
+          bottom: 20,
+          left: 20,
+          padding: '8px 12px',
+          background: '#4285F4',
+          color: 'white',
+          border: 'none',
+          borderRadius: 4
+        }}
+      >
+        {showHistogram ? 'Hide' : 'Show'} Distribution
+      </button>
+      <Histogram
+        data={areaData}
+        visible={showHistogram}
+        onToggleVisibility={() => setShowHistogram(false)}
+        title="Distribution"
+        subtitle={`${visiblePoints.length} boxes visible`}
+      />
     </section>
   )
 };
