@@ -11,9 +11,12 @@ export const useViewportWorker = ({ onMessage, onError }: UseViewportWorkerProps
 
   const initWorker = useCallback(() => {
     try {
-      const worker = new Worker(new URL('../../workers/viewport/viewportWorker.js', import.meta.url), {
-        type: 'module'
-      });
+      const worker = new Worker(
+        new URL('../../workers/viewport/viewportWorker.js', import.meta.url),
+        {
+          type: 'module',
+        }
+      );
       workerRef.current = worker;
       worker.addEventListener('message', onMessage);
       return worker;
@@ -42,6 +45,6 @@ export const useViewportWorker = ({ onMessage, onError }: UseViewportWorkerProps
     workerRef,
     initWorker,
     terminateWorker,
-    postMessage
+    postMessage,
   };
-}; 
+};

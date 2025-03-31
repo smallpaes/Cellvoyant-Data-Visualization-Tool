@@ -3,15 +3,23 @@ import useOffscreenCanvas from '../useOffscreenCanvas';
 import { useViewportWorker } from './useViewportWorker';
 import { useViewportEvents } from './useViewportEvents';
 import { useViewportActions, UseViewportActionsReturn } from './useViewportActions';
-import { CustomPluginOptions, WorkerMessageType, ViewportInfo, WorkerMessage, TooltipData, VisiblePoint, DataPoint } from '../../types/viewPort';
+import {
+  CustomPluginOptions,
+  WorkerMessageType,
+  ViewportInfo,
+  WorkerMessage,
+  TooltipData,
+  VisiblePoint,
+  DataPoint,
+} from '../../types/viewPort';
 
 type UseViewportProps<T> = {
   screenWidth?: number;
   screenHeight?: number;
-  canvasRef: RefObject<HTMLCanvasElement | null>,
-  data: T
-  pluginOptions?: CustomPluginOptions
-}
+  canvasRef: RefObject<HTMLCanvasElement | null>;
+  data: T;
+  pluginOptions?: CustomPluginOptions;
+};
 
 type ViewportHookReturn = {
   viewportActions: UseViewportActionsReturn;
@@ -21,16 +29,16 @@ type ViewportHookReturn = {
   tooltip: {
     isVisible: boolean;
     data: TooltipData | null;
-  }
+  };
   visiblePoints: VisiblePoint[];
-}
+};
 
-const useViewport = <T extends DataPoint[]>({ 
+const useViewport = <T extends DataPoint[]>({
   screenWidth,
   screenHeight,
-  canvasRef, 
-  data, 
-  pluginOptions
+  canvasRef,
+  data,
+  pluginOptions,
 }: UseViewportProps<T>): ViewportHookReturn => {
   const [error, setError] = useState<Error | null>(null);
   const [viewportInfo, setViewportInfo] = useState<ViewportInfo | null>(null);
@@ -68,7 +76,7 @@ const useViewport = <T extends DataPoint[]>({
 
   const { initWorker, terminateWorker, postMessage, workerRef } = useViewportWorker({
     onMessage: handleWorkerMessage,
-    onError: setError
+    onError: setError,
   });
 
   const initViewport = useCallback(() => {
@@ -76,24 +84,27 @@ const useViewport = <T extends DataPoint[]>({
     const canvas = canvasRef.current;
     const { width, height } = canvas;
 
-    postMessage({
-      type: WorkerMessageType.INIT,
-      data: {
-        canvas: view,
-        imagePath: '/images/cell.jpg',
-        renderedData: {
-          data,
-          size: 1
+    postMessage(
+      {
+        type: WorkerMessageType.INIT,
+        data: {
+          canvas: view,
+          imagePath: '/images/cell.jpg',
+          renderedData: {
+            data,
+            size: 1,
+          },
+          viewport: {
+            screenWidth: screenWidth || width,
+            screenHeight: screenHeight || height,
+            worldWidth: width,
+            worldHeight: height,
+            plugins: pluginOptions || {},
+          },
         },
-        viewport: {
-          screenWidth: screenWidth || width,
-          screenHeight: screenHeight || height,
-          worldWidth: width,
-          worldHeight: height,
-          plugins: pluginOptions || {}
-        }
-      }
-    }, view);
+      },
+      view
+    );
   }, [view, canvasRef, data, pluginOptions, workerRef, postMessage, screenWidth, screenHeight]);
 
   useEffect(() => {
@@ -106,13 +117,16 @@ const useViewport = <T extends DataPoint[]>({
   useViewportEvents({
     canvasRef,
     postMessage,
-    isInitialized
+    isInitialized,
   });
 
-  const tooltip = useMemo(() => ({
-    isVisible: showTooltip,
-    data: tooltipData
-  }), [showTooltip, tooltipData]);
+  const tooltip = useMemo(
+    () => ({
+      isVisible: showTooltip,
+      data: tooltipData,
+    }),
+    [showTooltip, tooltipData]
+  );
 
   const viewportActions = useViewportActions(isInitialized, postMessage);
 
@@ -122,7 +136,7 @@ const useViewport = <T extends DataPoint[]>({
     visiblePoints,
     tooltip,
     isLoading,
-    error
+    error,
   };
 };
 

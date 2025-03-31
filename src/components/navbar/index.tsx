@@ -1,4 +1,4 @@
-import './Navbar.css'
+import './Navbar.css';
 
 export const Navbar = () => {
   return (
@@ -7,5 +7,5 @@ export const Navbar = () => {
         <div className="navbar-logo">CellVoyant</div>
       </div>
     </nav>
-  )
-} 
+  );
+};

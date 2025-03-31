@@ -4,7 +4,7 @@ export const BASE_CHART_CONFIG = {
   marginLeft: 50,
   grid: true,
   style: {
-    background: "var(--component-background)",
-    color: "var(--primary-color)"
-  }
+    background: 'var(--component-background)',
+    color: 'var(--primary-color)',
+  },
 } as const;

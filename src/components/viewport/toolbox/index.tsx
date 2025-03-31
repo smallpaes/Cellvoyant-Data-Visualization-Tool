@@ -24,7 +24,7 @@ export const Toolbox: React.FC<ToolboxProps> = ({
   onReset,
   onToggleHistogram,
   isHistogramVisible,
-  isDisabled = false
+  isDisabled = false,
 }) => {
   return (
     <div className={`toolbox ${isDisabled ? 'toolbox--disabled' : ''}`}>

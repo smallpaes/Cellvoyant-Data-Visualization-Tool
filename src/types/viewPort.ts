@@ -175,7 +175,7 @@ type MouseEdgesPluginOptions = {
 
 type TooltipPluginOptions = {
   enabled: boolean;
-}
+};
 
 // Combine all plugin options into a single type
 /**
@@ -228,7 +228,7 @@ export type ViewportInfo = {
   y: number;
 };
 
-export type DataPoint = [number, number, number, number]
+export type DataPoint = [number, number, number, number];
 
 export type RenderedData = {
   data: DataPoint[];
@@ -250,7 +250,7 @@ export enum WorkerMessageType {
   MOUSE_LEAVE = 'mouseleave',
   TOOLTIP_UPDATE = 'tooltip-update',
   INITIAL_RENDER_COMPLETE = 'initial-render-complete',
-};
+}
 
 export type TooltipData = {
   x: number;
@@ -276,7 +276,7 @@ export type InitData = {
     worldHeight: number;
     plugins: Partial<CustomPluginOptions>;
   };
-}
+};
 
 export type InitMessage = BaseWorkerMessage & {
   type: WorkerMessageType.INIT;
@@ -301,19 +301,19 @@ export type WheelData = Pick<WheelEvent, 'deltaY' | 'deltaMode'> & {
 export type WheelMessage = BaseWorkerMessage & {
   type: WorkerMessageType.WHEEL;
   data: WheelData;
-}
+};
 
 export type MouseButtonData = Pick<MouseEvent, 'button' | 'clientX' | 'clientY'>;
 
 export type MouseButtonMessage = BaseWorkerMessage & {
   type: WorkerMessageType.MOUSE_DOWN | WorkerMessageType.MOUSE_UP;
   data: MouseButtonData;
-}
+};
 
 export type MouseMoveData = Pick<MouseEvent, 'clientX' | 'clientY'> & {
   canvasX: number;
   canvasY: number;
-}
+};
 
 export type MouseMoveMessage = BaseWorkerMessage & {
   type: WorkerMessageType.MOUSE_MOVE;
@@ -323,7 +323,7 @@ export type MouseMoveMessage = BaseWorkerMessage & {
 export type ZoomData = {
   scale: number;
   center?: { x: number; y: number };
-}
+};
 
 export type ZoomMessage = BaseWorkerMessage & {
   type: WorkerMessageType.ZOOM;
@@ -362,7 +362,7 @@ export type VisiblePoint = {
   y: number;
   width: number;
   height: number;
-}
+};
 
 export type WorkerMessage =
   | InitMessage
@@ -389,4 +389,4 @@ export type RBushItem = {
   id: string;
   width: number;
   height: number;
-}
+};

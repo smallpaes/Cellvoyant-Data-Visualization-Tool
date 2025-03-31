@@ -18,10 +18,10 @@ export const Tooltip: React.FC<TooltipProps> = ({ isVisible, data, offset = 35 }
   if (!isVisible || !data) return null;
   return (
     <div
-      className="tooltip" 
+      className="tooltip"
       style={{
         top: `${data.y + offset}px`,
-        left: `${data.x + offset}px`
+        left: `${data.x + offset}px`,
       }}
     >
       <div className="tooltip__item">x: {data.x.toFixed(1)}</div>
@@ -30,4 +30,4 @@ export const Tooltip: React.FC<TooltipProps> = ({ isVisible, data, offset = 35 }
       <div className="tooltip__item">height: {data.height}</div>
     </div>
   );
-}; 
+};

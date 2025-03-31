@@ -13,7 +13,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   width = '100%',
   height = '100%',
   borderRadius = '4px',
-  className = ''
+  className = '',
 }) => {
   return (
     <div

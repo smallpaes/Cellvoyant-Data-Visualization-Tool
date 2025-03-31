@@ -1,4 +1,12 @@
-import { Sprite, Container, Graphics, RenderTexture, Rectangle, Texture, Application } from '@pixi/webworker';
+import {
+  Sprite,
+  Container,
+  Graphics,
+  RenderTexture,
+  Rectangle,
+  Texture,
+  Application,
+} from '@pixi/webworker';
 import { POINT_DEFAULTS } from './viewportConstants.ts';
 import { OffscreenViewport } from './offscreenViewport.ts';
 import { RBushItem, RenderedData } from '../../types/viewPort';
@@ -41,15 +49,11 @@ function initRBushItems(viewport: OffscreenViewport, renderedData: RenderedData)
 
 function createCircle(viewport: OffscreenViewport, lineAlpha: number): Graphics {
   const graphics = new Graphics();
-  graphics.lineStyle(
-    POINT_DEFAULTS.lineWidth, 
-    POINT_DEFAULTS.lineColor, 
-    lineAlpha
-  );
+  graphics.lineStyle(POINT_DEFAULTS.lineWidth, POINT_DEFAULTS.lineColor, lineAlpha);
   graphics.drawCircle(
-    viewport.basePointSize / 2, 
-    viewport.basePointSize / 2, 
-    (viewport.basePointSize / 2) - POINT_DEFAULTS.lineWidth / 2
+    viewport.basePointSize / 2,
+    viewport.basePointSize / 2,
+    viewport.basePointSize / 2 - POINT_DEFAULTS.lineWidth / 2
   );
   return graphics;
 }
@@ -63,10 +67,10 @@ function createCircle(viewport: OffscreenViewport, lineAlpha: number): Graphics 
  * @returns {RenderTexture} A RenderTexture containing the two circles
  */
 function createDataPointSpriteSheet(app: Application, viewport: OffscreenViewport): RenderTexture {
-  const renderTexture = RenderTexture.create({ 
-    width: viewport.basePointSize * 2, 
+  const renderTexture = RenderTexture.create({
+    width: viewport.basePointSize * 2,
     height: viewport.basePointSize,
-    resolution: POINT_DEFAULTS.resolution
+    resolution: POINT_DEFAULTS.resolution,
   });
 
   // Create a container to hold the two circles
@@ -87,20 +91,29 @@ function createDataPointSpriteSheet(app: Application, viewport: OffscreenViewpor
 }
 
 /**
- * This RenderTexture is created once, and then different parts of it (the frames) 
+ * This RenderTexture is created once, and then different parts of it (the frames)
  * are referenced by creating new Texture() objects that point to specific regions
  * of the RenderTexture
  * @param {OffscreenViewport} viewport - The viewport instance
  * @param {RenderTexture} renderedTexture - The rendered texture containing the two circles
  * @returns {Object} An object containing the normal and hovered frames
  */
-function createTextureFrames(viewport: OffscreenViewport, renderedTexture: RenderTexture): { normalFrame: Texture; hoverFrame: Texture } {
-  const normalFrame = new Texture(renderedTexture.baseTexture, new Rectangle(0, 0, viewport.basePointSize, viewport.basePointSize));
-  const hoverFrame = new Texture(renderedTexture.baseTexture, new Rectangle(viewport.basePointSize, 0, viewport.basePointSize, viewport.basePointSize));
-  
+function createTextureFrames(
+  viewport: OffscreenViewport,
+  renderedTexture: RenderTexture
+): { normalFrame: Texture; hoverFrame: Texture } {
+  const normalFrame = new Texture(
+    renderedTexture.baseTexture,
+    new Rectangle(0, 0, viewport.basePointSize, viewport.basePointSize)
+  );
+  const hoverFrame = new Texture(
+    renderedTexture.baseTexture,
+    new Rectangle(viewport.basePointSize, 0, viewport.basePointSize, viewport.basePointSize)
+  );
+
   viewport.pointTexture = normalFrame;
   viewport.hoveredPointTexture = hoverFrame;
-  
+
   return { normalFrame, hoverFrame };
 }
 
@@ -128,7 +141,11 @@ function createDataPoint(normalFrame: Texture, x: number, y: number, scaleFactor
  * @param {RenderedData} renderedData - The data to render
  * @returns {Container} The container holding all data point sprites
  */
-function renderDataToViewport(app: Application, viewport: OffscreenViewport, renderedData: RenderedData): Container {
+function renderDataToViewport(
+  app: Application,
+  viewport: OffscreenViewport,
+  renderedData: RenderedData
+): Container {
   const spriteSheet = createDataPointSpriteSheet(app, viewport);
   const { normalFrame } = createTextureFrames(viewport, spriteSheet);
 
@@ -149,8 +166,13 @@ function renderDataToViewport(app: Application, viewport: OffscreenViewport, ren
   return sprites;
 }
 
-export async function createContent(app: Application, viewport: OffscreenViewport, texture: Texture, renderedData: RenderedData): Promise<void> {
+export async function createContent(
+  app: Application,
+  viewport: OffscreenViewport,
+  texture: Texture,
+  renderedData: RenderedData
+): Promise<void> {
   createBackground(viewport, texture);
   initRBushItems(viewport, renderedData);
   renderDataToViewport(app, viewport, renderedData);
-} 
+}

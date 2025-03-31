@@ -1,4 +1,3 @@
-
 /**
  * Debounces a function to prevent it from being called too frequently
  * @param func - The function to debounce

@@ -1,3 +1,3 @@
 import { handleViewportWorkerMessage } from './viewportWorkerHandler.ts';
 
-self.onmessage = handleViewportWorkerMessage; 
+self.onmessage = handleViewportWorkerMessage;

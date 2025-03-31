@@ -1,4 +1,4 @@
-import { PluginOptions } from "../../types/viewPort";
+import { PluginOptions } from '../../types/viewPort';
 
 // Timing constants
 export const THROTTLE_DELAY = 16;
@@ -7,22 +7,21 @@ export const DEFAULT_VIEWPORT_CONFIG = {
   screenWidth: 800,
   screenHeight: 800,
   worldWidth: 800,
-  worldHeight: 800
+  worldHeight: 800,
 } as const;
 
 export const DEFAULT_APP_CONFIG = {
   antialias: true,
-  backgroundAlpha: 0
+  backgroundAlpha: 0,
 } as const;
-
 
 export const POINT_DEFAULTS = {
   basePointSize: 8,
   resolution: 2,
   lineWidth: 1,
-  lineColor: 0xDC2626,
+  lineColor: 0xdc2626,
   lineAlpha: 0.5,
-  hoverLineAlpha: 1
+  hoverLineAlpha: 1,
 } as const;
 
 export const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
@@ -36,12 +35,12 @@ export const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
     underflow: 'center',
     factor: 1,
     mouseButtons: 'all',
-    keyToPress: null
+    keyToPress: null,
   },
   pinch: {
     percent: 1,
     noDrag: false,
-    center: null
+    center: null,
   },
   wheel: {
     percent: 0.1,
@@ -51,7 +50,7 @@ export const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
     center: null,
     lineHeight: 20,
     axis: 'all',
-    keyToPress: null
+    keyToPress: null,
   },
   clamp: {
     left: null,
@@ -59,7 +58,7 @@ export const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
     top: null,
     bottom: null,
     direction: 'all',
-    underflow: 'center'
+    underflow: 'center',
   },
   clampZoom: {
     minWidth: null,
@@ -67,7 +66,7 @@ export const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
     maxWidth: null,
     maxHeight: null,
     minScale: 0.1,
-    maxScale: 5
+    maxScale: 5,
   },
   bounce: {
     sides: 'all',
@@ -75,7 +74,7 @@ export const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
     time: 150,
     bounceBox: null,
     ease: 'easeInOutSine',
-    underflow: 'center'
+    underflow: 'center',
   },
   snap: {
     topLeft: false,
@@ -84,12 +83,12 @@ export const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
     ease: 'easeInOutSine',
     interrupt: true,
     center: false,
-    stop: false
+    stop: false,
   },
   follow: {
     friction: 0.5,
     acceleration: null,
-    radius: null
+    radius: null,
   },
   mouseEdges: {
     radius: null,
@@ -102,9 +101,9 @@ export const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
     reverse: false,
     noDecelerate: false,
     linear: false,
-    allowButtons: false
+    allowButtons: false,
   },
   tooltip: {
     enabled: false,
-  }
-}; 
+  },
+};

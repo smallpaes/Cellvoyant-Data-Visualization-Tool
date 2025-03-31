@@ -9,7 +9,11 @@ interface UseViewportEventsProps {
   isInitialized: boolean;
 }
 
-export const useViewportEvents = ({ canvasRef, postMessage, isInitialized }: UseViewportEventsProps) => {
+export const useViewportEvents = ({
+  canvasRef,
+  postMessage,
+  isInitialized,
+}: UseViewportEventsProps) => {
   const rectRef = useRef<DOMRect | null>(null);
 
   const updateRect = useCallback(() => {
@@ -18,76 +22,85 @@ export const useViewportEvents = ({ canvasRef, postMessage, isInitialized }: Use
     }
   }, [canvasRef]);
 
-  const throttledUpdateRect = useCallback(
-    () => throttle(updateRect, 100)(),
-    [updateRect]
+  const throttledUpdateRect = useCallback(() => throttle(updateRect, 100)(), [updateRect]);
+
+  const handleWheel = useCallback(
+    (e: WheelEvent) => {
+      e.preventDefault();
+      if (!canvasRef.current || !rectRef.current) return;
+
+      const canvasX = e.clientX - rectRef.current.left;
+      const canvasY = e.clientY - rectRef.current.top;
+
+      postMessage({
+        type: WorkerMessageType.WHEEL,
+        data: {
+          deltaY: e.deltaY,
+          deltaMode: e.deltaMode,
+          canvasX,
+          canvasY,
+        },
+      });
+    },
+    [canvasRef, postMessage]
   );
 
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
-    if (!canvasRef.current || !rectRef.current) return;
-    
-    const canvasX = e.clientX - rectRef.current.left;
-    const canvasY = e.clientY - rectRef.current.top;
-        
-    postMessage({
-      type: WorkerMessageType.WHEEL,
-      data: {
-        deltaY: e.deltaY,
-        deltaMode: e.deltaMode,
-        canvasX,
-        canvasY
+  const handleMouseDown = useCallback(
+    (e: MouseEvent) => {
+      e.stopPropagation();
+      postMessage({
+        type: WorkerMessageType.MOUSE_DOWN,
+        data: {
+          button: e.button,
+          clientX: e.clientX,
+          clientY: e.clientY,
+        },
+      });
+    },
+    [postMessage]
+  );
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      e.stopPropagation();
+      if (!canvasRef.current || !rectRef.current) return;
+
+      const isOutsideCanvas = e.target !== canvasRef.current;
+      if (isOutsideCanvas) {
+        postMessage({ type: WorkerMessageType.MOUSE_LEAVE });
+        return;
       }
-    });
-  }, [canvasRef, postMessage]);
 
-  const handleMouseDown = useCallback((e: MouseEvent) => {
-    e.stopPropagation();
-    postMessage({
-      type: WorkerMessageType.MOUSE_DOWN,
-      data: {
-        button: e.button,
-        clientX: e.clientX,
-        clientY: e.clientY
-      }
-    });
-  }, [postMessage]);
+      const canvasX = e.clientX - rectRef.current.left;
+      const canvasY = e.clientY - rectRef.current.top;
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    e.stopPropagation();
-    if (!canvasRef.current || !rectRef.current) return;
+      postMessage({
+        type: WorkerMessageType.MOUSE_MOVE,
+        data: {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          canvasX: isOutsideCanvas ? -1 : canvasX,
+          canvasY: isOutsideCanvas ? -1 : canvasY,
+        },
+      });
+    },
+    [postMessage, canvasRef]
+  );
 
-    const isOutsideCanvas = e.target !== canvasRef.current;
-    if (isOutsideCanvas) {
-      postMessage({ type: WorkerMessageType.MOUSE_LEAVE });
-      return;
-    }
-
-    const canvasX = e.clientX - rectRef.current.left;
-    const canvasY = e.clientY - rectRef.current.top;
-
-    postMessage({
-      type: WorkerMessageType.MOUSE_MOVE,
-      data: {
-        clientX: e.clientX,
-        clientY: e.clientY,
-        canvasX: isOutsideCanvas ? -1 : canvasX,
-        canvasY: isOutsideCanvas ? -1 : canvasY
-      }
-    });
-  }, [postMessage, canvasRef]);
-
-  const handleMouseUp = useCallback((e: MouseEvent) => {
-    e.stopPropagation();
-    postMessage({
-      type: WorkerMessageType.MOUSE_UP,
-      data: {
-        button: e.button,
-        clientX: e.clientX,
-        clientY: e.clientY
-      }
-    });
-  }, [postMessage]);
+  const handleMouseUp = useCallback(
+    (e: MouseEvent) => {
+      e.stopPropagation();
+      postMessage({
+        type: WorkerMessageType.MOUSE_UP,
+        data: {
+          button: e.button,
+          clientX: e.clientX,
+          clientY: e.clientY,
+        },
+      });
+    },
+    [postMessage]
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -108,12 +121,21 @@ export const useViewportEvents = ({ canvasRef, postMessage, isInitialized }: Use
       window.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isInitialized, canvasRef, handleMouseDown, handleMouseMove, handleMouseUp, handleWheel, updateRect, throttledUpdateRect]);
+  }, [
+    isInitialized,
+    canvasRef,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleWheel,
+    updateRect,
+    throttledUpdateRect,
+  ]);
 
   return {
     handleWheel,
     handleMouseDown,
     handleMouseMove,
-    handleMouseUp
+    handleMouseUp,
   };
-}; 
+};
