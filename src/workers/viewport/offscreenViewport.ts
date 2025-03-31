@@ -13,117 +13,95 @@ import {
   TooltipData,
   CustomPluginOptions,
   PluginOptions,
+  Point,
+  OffscreenViewportOptions,
 } from '../../types/viewPort';
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface ViewportOptions {
-  screenWidth?: number;
-  screenHeight?: number;
-  worldWidth?: number;
-  worldHeight?: number;
-  pluginOptions?: CustomPluginOptions;
-}
-
-interface DragPlugin {
-  active: boolean;
-  last: Point | null;
-}
-
-interface PinchPlugin {
-  active: boolean;
-  center: Point | null;
-  distance: number;
-}
-
-interface WheelPlugin {
-  smoothing: number | null;
-}
-
-interface PluginsState {
-  drag: DragPlugin;
-  pinch: PinchPlugin;
-  wheel: WheelPlugin;
-}
+import { DragPlugin, WheelPlugin } from './plugins';
 
 export class OffscreenViewport extends Container {
+  // Core viewport properties
+  private readonly _worldCenter: Point;
+  private _dirty: boolean;
+  private _lastHoveredPoint: RBushItem | null;
+  private scaleFactor: number | null;
+
+  // Dimensions
   screenWidth: number;
   screenHeight: number;
   worldWidth: number;
   worldHeight: number;
-  private _worldCenter: Point;
-  dotIndex: RBush<RBushItem>;
-  spriteMap: Map<string, Sprite>;
-  private _lastHoveredPoint: RBushItem | null;
-  pointTexture: Texture | null;
-  hoveredPointTexture: Texture | null;
-  basePointSize: number;
-  basePointRadius: number;
-  scaleFactor: number | null;
-  pluginsState: PluginsState;
-  pluginOptions: PluginOptions;
-  minScale: number;
-  maxScale: number;
-  private _dirty: boolean;
 
-  constructor(options: ViewportOptions = {}) {
+  // Scale limits
+  readonly minScale: number;
+  readonly maxScale: number;
+
+  // Data structures
+  readonly dotIndex: RBush<RBushItem>;
+  readonly spriteMap: Map<string, Sprite>;
+
+  // Textures for hover state
+  private pointTexture: Texture | null;
+  private hoveredPointTexture: Texture | null;
+
+  // Point properties
+  readonly basePointSize: number;
+  readonly basePointRadius: number;
+
+  // Plugin state and options
+  private readonly dragPlugin: DragPlugin;
+  private readonly wheelPlugin: WheelPlugin;
+  pluginOptions: PluginOptions;
+
+  constructor(options: OffscreenViewportOptions = {}) {
     super();
-    // Screen dimensions (canvas size)
+
+    // Initialize dimensions: canvas size
     this.screenWidth = options.screenWidth || DEFAULT_VIEWPORT_CONFIG.screenWidth;
     this.screenHeight = options.screenHeight || DEFAULT_VIEWPORT_CONFIG.screenHeight;
-
-    // World dimensions (content size)
+    // Initialize dimensions: content size
     this.worldWidth = options.worldWidth || DEFAULT_VIEWPORT_CONFIG.worldWidth;
     this.worldHeight = options.worldHeight || DEFAULT_VIEWPORT_CONFIG.worldHeight;
 
-    // Initial scales and positions
+    // Initialize core properties
     this.scale.set(1);
+    this._dirty = true;
+    this._lastHoveredPoint = null;
+    this.scaleFactor = null;
 
-    // Save center of the world for initial positioning
+    // Initialize world center
     this._worldCenter = {
       x: this.worldWidth / 2,
       y: this.worldHeight / 2,
     };
 
-    // Center the viewport initially
-    this.moveCenter(this._worldCenter);
-
-    // Create RBush index
+    // Initialize data structures
     this.dotIndex = new RBush();
-
-    // Sprite mapping management
     this.spriteMap = new Map();
-    this._lastHoveredPoint = null;
+
+    // Initialize textures
     this.pointTexture = null;
     this.hoveredPointTexture = null;
 
-    // Store base dot info (before any scaling)
+    // Initialize point properties
     this.basePointSize = POINT_DEFAULTS.basePointSize;
     this.basePointRadius = this.basePointSize / 2;
-    this.scaleFactor = null;
-
-    // Enable plugins (features)
-    this.pluginsState = {
-      drag: { active: false, last: null },
-      pinch: { active: false, center: null, distance: 0 },
-      wheel: { smoothing: null },
-    };
 
     // Initialize plugin options
     this.pluginOptions = DEFAULT_PLUGIN_OPTIONS;
     this.addCustomPluginOptions(options.pluginOptions);
 
-    // Setup scale limits
+    // Initialize plugins
+    this.dragPlugin = new DragPlugin(this.pluginOptions.drag);
+    this.wheelPlugin = new WheelPlugin(this.pluginOptions.wheel);
+
+    // Initialize scale limits
     this.minScale =
       this.pluginOptions.clampZoom.minScale ?? DEFAULT_PLUGIN_OPTIONS.clampZoom.minScale;
     this.maxScale =
       this.pluginOptions.clampZoom.maxScale ?? DEFAULT_PLUGIN_OPTIONS.clampZoom.maxScale;
 
-    // For sending updates to the main thread
-    this._dirty = true;
+    // Center the viewport initially
+    this.moveCenter(this._worldCenter);
   }
 
   addCustomPluginOptions(userPluginOptions?: CustomPluginOptions): void {
@@ -233,29 +211,8 @@ export class OffscreenViewport extends Container {
    * @param {WheelEvent} event - Wheel event data
    */
   handleWheel(data: WheelData): void {
-    const wheelOptions = this.pluginOptions.wheel;
-
-    // Get the direction of zoom
-    const sign = wheelOptions.reverse ? -1 : 1;
-
-    // Calculate the zoom factor based on delta
-    // Using the lineHeight option to scale non-pixel units
-    let wheelDelta = -data.deltaY;
-    if (data.deltaMode === 1) {
-      wheelDelta *= wheelOptions.lineHeight;
-    }
-
-    const percent = wheelOptions.percent;
-    const step = (sign * wheelDelta) / 1000;
-    const scale = Math.pow(2, (1 + percent) * step);
-
-    // Create a point for the zoom center
-    const point = wheelOptions.center
-      ? { x: this.screenWidth / 2, y: this.screenHeight / 2 }
-      : { x: data.canvasX, y: data.canvasY };
-
-    // Apply the zoom
-    this.zoomAt(scale, point);
+    const wheelResult = this.wheelPlugin.handleWheel(data);
+    this.zoomAt(wheelResult.scale, wheelResult.center);
   }
 
   /**
@@ -263,15 +220,7 @@ export class OffscreenViewport extends Container {
    * @param {MouseButtonData} event - Mouse event data
    */
   handleMouseDown(data: MouseButtonData): void {
-    const dragOptions = this.pluginOptions.drag;
-
-    // Only handle primary button (left click) by default
-    const allowedButtons = dragOptions.mouseButtons === 'all' ? [0, 1, 2] : [0];
-
-    if (allowedButtons.includes(data.button) && dragOptions.pressDrag) {
-      this.pluginsState.drag.active = true;
-      this.pluginsState.drag.last = { x: data.clientX, y: data.clientY };
-    }
+    this.dragPlugin.handleMouseDown(data);
   }
 
   findClosestPoint(
@@ -364,136 +313,102 @@ export class OffscreenViewport extends Container {
   }
 
   handleMouseMove(data: MouseMoveData): void {
-    const dragData = this.pluginsState.drag;
-    const dragOptions = this.pluginOptions.drag;
-
-    if (dragData.active && dragData.last) {
-      const dx = data.clientX - dragData.last.x;
-      const dy = data.clientY - dragData.last.y;
-
-      // Apply drag factor
-      const factor = dragOptions.factor;
-
-      // Handle directional constraints
-      if (dragOptions.direction === 'all' || dragOptions.direction === 'x') {
-        this.x += dx * factor;
-      }
-
-      if (dragOptions.direction === 'all' || dragOptions.direction === 'y') {
-        this.y += dy * factor;
-      }
-
-      // Update last position
-      dragData.last = { x: data.clientX, y: data.clientY };
-
-      // Apply clamping
+    const dragResult = this.dragPlugin.handleMouseMove(data);
+    if (dragResult) {
+      this.move(dragResult.dx, dragResult.dy);
       this.clamp();
-
       this._dirty = true;
     }
   }
 
-  resetDragData(): void {
-    const dragData = this.pluginsState.drag;
-    if (dragData.active && dragData.last) {
-      dragData.active = false;
-      dragData.last = null;
-    }
-  }
-
   handleMouseUp(data: MouseButtonData): void {
-    const allowedButtons = this.pluginOptions.drag.mouseButtons === 'all' ? [0, 1, 2] : [0];
-    if (allowedButtons.includes(data.button)) {
-      this.resetDragData();
-    }
+    this.dragPlugin.handleMouseUp(data);
   }
 
   handleMouseLeave(): void {
-    this.resetDragData();
+    this.dragPlugin.handleMouseLeave();
     this.resetLastHoveredPoint();
   }
 
-  /**
-   * Clamps the viewport within the world boundaries
-   */
+  private clampXAxis(worldScreenWidth: number, xMin: number, xMax: number): void {
+    const clampOptions = this.pluginOptions.clamp;
+    const worldWidth = xMax - xMin;
+
+    if (worldWidth <= worldScreenWidth) {
+      switch (clampOptions.underflow) {
+        case 'center':
+          this.x = (this.screenWidth - worldWidth * this.scale.x) / 2;
+          break;
+        case 'left':
+          this.x = 0;
+          break;
+        case 'right':
+          this.x = this.screenWidth - worldWidth * this.scale.x;
+          break;
+        default:
+          this.x = 0;
+      }
+    } else {
+      const rightEdge = -xMin * this.scale.x;
+      const leftEdge = this.screenWidth - xMax * this.scale.x;
+
+      if (this.x > rightEdge) {
+        this.x = rightEdge;
+      } else if (this.x < leftEdge) {
+        this.x = leftEdge;
+      }
+    }
+  }
+
+  private clampYAxis(worldScreenHeight: number, yMin: number, yMax: number): void {
+    const clampOptions = this.pluginOptions.clamp;
+    const worldHeight = yMax - yMin;
+    // Handle when content is smaller than screen
+    if (worldHeight <= worldScreenHeight) {
+      switch (clampOptions.underflow) {
+        case 'center':
+          this.y = (this.screenHeight - worldHeight * this.scale.y) / 2;
+          break;
+        case 'top':
+          this.y = 0;
+          break;
+        case 'bottom':
+          this.y = this.screenHeight - worldHeight * this.scale.y;
+          break;
+        default:
+          this.y = 0;
+      }
+    } else {
+      // Content is larger than screen, enforce boundaries
+      const bottomEdge = -yMin * this.scale.y;
+      const topEdge = this.screenHeight - yMax * this.scale.y;
+
+      if (this.y > bottomEdge) {
+        this.y = bottomEdge;
+      } else if (this.y < topEdge) {
+        this.y = topEdge;
+      }
+    }
+  }
+
   clamp(): void {
     const clampOptions = this.pluginOptions.clamp;
-
-    // Skip if no clamping is enabled
     if (clampOptions.direction === 'none') return;
 
-    // Calculate the visible area in world coordinates
     const worldScreenWidth = this.screenWidth / this.scale.x;
     const worldScreenHeight = this.screenHeight / this.scale.y;
 
-    // Determine clamping bounds
     const xMin = clampOptions.left === null ? -Infinity : clampOptions.left || 0;
     const xMax = clampOptions.right === null ? Infinity : clampOptions.right || this.worldWidth;
     const yMin = clampOptions.top === null ? -Infinity : clampOptions.top || 0;
     const yMax = clampOptions.bottom === null ? Infinity : clampOptions.bottom || this.worldHeight;
 
-    // Calculate boundaries
-    const worldWidth = xMax - xMin;
-    const worldHeight = yMax - yMin;
-
-    // Handle X-axis clamping
     if (clampOptions.direction === 'all' || clampOptions.direction === 'x') {
-      // Handle when content is smaller than screen
-      if (worldWidth <= worldScreenWidth) {
-        switch (clampOptions.underflow) {
-          case 'center':
-            this.x = (this.screenWidth - worldWidth * this.scale.x) / 2;
-            break;
-          case 'left':
-            this.x = 0;
-            break;
-          case 'right':
-            this.x = this.screenWidth - worldWidth * this.scale.x;
-            break;
-          default:
-            this.x = 0;
-        }
-      } else {
-        // Content is larger than screen, enforce boundaries
-        const rightEdge = -xMin * this.scale.x;
-        const leftEdge = this.screenWidth - xMax * this.scale.x;
-
-        if (this.x > rightEdge) {
-          this.x = rightEdge;
-        } else if (this.x < leftEdge) {
-          this.x = leftEdge;
-        }
-      }
+      this.clampXAxis(worldScreenWidth, xMin, xMax);
     }
 
-    // Handle Y-axis clamping
     if (clampOptions.direction === 'all' || clampOptions.direction === 'y') {
-      // Handle when content is smaller than screen
-      if (worldHeight <= worldScreenHeight) {
-        switch (clampOptions.underflow) {
-          case 'center':
-            this.y = (this.screenHeight - worldHeight * this.scale.y) / 2;
-            break;
-          case 'top':
-            this.y = 0;
-            break;
-          case 'bottom':
-            this.y = this.screenHeight - worldHeight * this.scale.y;
-            break;
-          default:
-            this.y = 0;
-        }
-      } else {
-        // Content is larger than screen, enforce boundaries
-        const bottomEdge = -yMin * this.scale.y;
-        const topEdge = this.screenHeight - yMax * this.scale.y;
-
-        if (this.y > bottomEdge) {
-          this.y = bottomEdge;
-        } else if (this.y < topEdge) {
-          this.y = topEdge;
-        }
-      }
+      this.clampYAxis(worldScreenHeight, yMin, yMax);
     }
   }
 
@@ -554,5 +469,13 @@ export class OffscreenViewport extends Container {
 
   setPointScaleFactor(size: number): void {
     this.scaleFactor = size;
+  }
+
+  setPointTexture(texture: Texture): void {
+    this.pointTexture = texture;
+  }
+
+  setHoveredPointTexture(texture: Texture): void {
+    this.hoveredPointTexture = texture;
   }
 }

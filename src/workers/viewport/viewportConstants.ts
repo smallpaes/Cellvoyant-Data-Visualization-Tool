@@ -34,7 +34,7 @@ export const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
     clampWheel: false,
     underflow: 'center',
     factor: 1,
-    mouseButtons: 'all',
+    mouseButtons: 'left',
     keyToPress: null,
   },
   pinch: {

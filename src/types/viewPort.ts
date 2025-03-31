@@ -380,14 +380,48 @@ export type WorkerMessage =
   | VisiblePointsUpdateMessage
   | InitialRenderCompleteMessage;
 
-export type RBushItem = {
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface OffscreenViewportOptions {
+  screenWidth?: number;
+  screenHeight?: number;
+  worldWidth?: number;
+  worldHeight?: number;
+  pluginOptions?: CustomPluginOptions;
+}
+
+export interface DragPlugin {
+  active: boolean;
+  last: Point | null;
+}
+
+export interface PinchPlugin {
+  active: boolean;
+  center: Point | null;
+  distance: number;
+}
+
+export interface WheelPlugin {
+  smoothing: number | null;
+}
+
+export interface PluginsState {
+  drag: DragPlugin;
+  pinch: PinchPlugin;
+  wheel: WheelPlugin;
+}
+
+export interface RBushItem {
+  id: string;
+  x: number;
+  y: number;
   minX: number;
   minY: number;
   maxX: number;
   maxY: number;
-  x: number;
-  y: number;
-  id: string;
   width: number;
   height: number;
-};
+}

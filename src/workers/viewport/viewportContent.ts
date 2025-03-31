@@ -111,8 +111,8 @@ function createTextureFrames(
     new Rectangle(viewport.basePointSize, 0, viewport.basePointSize, viewport.basePointSize)
   );
 
-  viewport.pointTexture = normalFrame;
-  viewport.hoveredPointTexture = hoverFrame;
+  viewport.setPointTexture(normalFrame);
+  viewport.setHoveredPointTexture(hoverFrame);
 
   return { normalFrame, hoverFrame };
 }
