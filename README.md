@@ -2,6 +2,8 @@
 
 A React-based web application for analyzing high-resolution cell images with AI-generated cell marker overlays. This project is designed to provide biologists with a powerful tool for analyzing cell images.
 
+![Cell Image Viewer Screenshot](docs/screenshots/overview.png)
+
 ## Table of Contents
 
 - [Interactive Cell Image Viewer with Bounding Box Analysis](#interactive-cell-image-viewer-with-bounding-box-analysis)
