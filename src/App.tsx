@@ -9,7 +9,6 @@ import {
 import './App.css';
 
 function App() {
-  console.log('DEFAULT_SCALE_FACTOR', DEFAULT_SCALE_FACTOR);
   return (
     <div className="app">
       <Navbar />
