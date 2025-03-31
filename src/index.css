@@ -13,6 +13,9 @@
   --app-background: #f6f8f8;
   --component-background: #ffffff;
 
+  /* Logo Colors */
+  --logo-color: #2e2e2e;
+
   /* Font Sizes */
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
