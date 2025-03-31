@@ -16,6 +16,8 @@ A React-based web application for analyzing high-resolution cell images with AI-
   - [Technology Stack](#technology-stack)
   - [Project Structure Overview](#project-structure-overview)
   - [Nice to Have](#nice-to-have)
+    - [Feature side](#feature-side)
+    - [Coding side](#coding-side)
   - [Known Issues](#known-issues)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
@@ -107,6 +109,8 @@ src/
 
 ## Nice to Have
 
+### Feature side
+
 - Discuss with the user and update the styling of the bounding box
 - Loading state indicators for distribution chart during each viewport updates
 - Component testing and function unit testing
@@ -127,6 +131,10 @@ src/
   - Track rendering frame rate (FPS)
 - Technology evaluation:
   - Consider evaluating Deck.gl as an alternative rendering solution to compare performance and features
+
+### Coding side
+
+- Refactor useViewport and OffscreenViewport class logic to make it easier to manage
 
 ## Known Issues
 
