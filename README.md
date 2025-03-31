@@ -122,7 +122,6 @@ src/
   - Resize the viewport on smaller screen
 - Data processing optimizations:
   - Implement data compression(Communication between main thread and web worker)
-  - Optimize data loading strategy: Move the initial data processing to the worker as well
 - Error handling and stability:
   - Add error boundary handling especially on worker-related features
   - Provide better error feedback
