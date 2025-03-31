@@ -8,6 +8,7 @@ import { Histogram } from '../chart/histogram';
 import { Toolbox } from './toolbox';
 import { Tooltip } from './tooltip';
 import { Skeleton } from '../skeleton';
+import { DEFAULT_PLUGIN_OPTIONS } from './config';
 
 interface ViewPortProps {
   width?: number;
@@ -39,32 +40,7 @@ export const ViewPort: React.FC<ViewPortProps> = ({
     }
   }, [scaleFactor]);
 
-  const pluginOptions: CustomPluginOptions = useMemo(
-    () => ({
-      clampZoom: {
-        minScale: 1,
-        maxScale: 15,
-      },
-      clamp: {
-        direction: 'all',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-        underflow: 'center',
-      },
-      wheel: {
-        percent: 0.1,
-      },
-      drag: {
-        direction: 'all',
-      },
-      tooltip: {
-        enabled: true,
-      },
-    }),
-    []
-  );
+  const pluginOptions: CustomPluginOptions = useMemo(() => DEFAULT_PLUGIN_OPTIONS, []);
 
   const { isLoading, viewportActions, visiblePoints, tooltip } = useViewport<DataPoint[]>({
     canvasRef,
