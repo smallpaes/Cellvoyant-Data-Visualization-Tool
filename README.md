@@ -12,13 +12,13 @@ A React-based web application for analyzing high-resolution cell images with AI-
     - [Performance Optimization Journey](#performance-optimization-journey)
     - [Key Technical Decisions](#key-technical-decisions)
   - [Technology Stack](#technology-stack)
+  - [Project Structure Overview](#project-structure-overview)
   - [Nice to Have](#nice-to-have)
   - [Known Issues](#known-issues)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
     - [Available Scripts](#available-scripts)
-  - [Project Structure Overview](#project-structure-overview)
 
 ## Features
 
@@ -28,7 +28,6 @@ A React-based web application for analyzing high-resolution cell images with AI-
   - Smooth zooming and panning functionality
   - Skeleton loading state for initial rendering
   - Optional toolbox on the side for viewport interaction
-  - Loading state while loading
 
 - **Bounding Box Overlay**
 
@@ -65,13 +64,10 @@ A React-based web application for analyzing high-resolution cell images with AI-
 
 2. **Advanced Optimizations**
 
-   - Moved to Web Workers + OffscreenCanvas for rendering
+   - Moved to Web Workers + OffscreenCanvas for rendering and data manipulation
    - Created custom mini-viewport for better worker compatibility
    - Implemented RenderTexture for efficient hover state management
    - Used RBush for spatial indexing of points (O(log n) search complexity)
-
-3. **Data Management**
-   - Bulk data insertion in Web Workers
    - Debounced/throttled operations for:
      - Hover detection
      - Viewport updates
@@ -80,7 +76,7 @@ A React-based web application for analyzing high-resolution cell images with AI-
 
 ### Key Technical Decisions
 
-- **Rendering**: WebGL-based rendering with OffscreenCanvas API for handling 200,000+ data points fot better performance.
+- **Rendering**: WebGL-based rendering with OffscreenCanvas API for handling 200,000+ data points
 - **Spatial Indexing**: R-tree implementation via RBush for efficient point queries
 - **Threading**: Web Workers for heavy computations and data processing
 - **Update Frequency Control**: Debounced/throttled operations to balance responsiveness and performance
@@ -94,6 +90,18 @@ A React-based web application for analyzing high-resolution cell images with AI-
 - [Observable Plot](https://observablehq.com/plot/)
 - [RBush](https://github.com/mourner/rbush)
 - ESLint + Prettier
+
+## Project Structure Overview
+
+```
+src/
+├── components/
+├── hooks/
+├── workers/
+├── utils/
+├── types/            # TypeScript type definitions
+└── assets/           # Static assets (svg images)
+```
 
 ## Nice to Have
 
@@ -114,6 +122,8 @@ A React-based web application for analyzing high-resolution cell images with AI-
 - Performance monitoring and analysis:
   - Add performance monitoring tools
   - Track rendering frame rate (FPS)
+- Technology evaluation:
+  - Consider evaluating Deck.gl as an alternative rendering solution to compare performance and features
 
 ## Known Issues
 
@@ -168,15 +178,3 @@ npm run dev
 - `npm run format` - Format code using Prettier
 - `npm run use-node-version` - Switch to the correct Node.js version
 - `npm run build` - Build the project for production
-
-## Project Structure Overview
-
-```
-src/
-├── components/
-├── hooks/
-├── workers/
-├── utils/
-├── types/            # TypeScript type definitions
-└── assets/           # Static assets (svg images)
-```
