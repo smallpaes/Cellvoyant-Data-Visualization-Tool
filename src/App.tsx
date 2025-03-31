@@ -9,7 +9,7 @@ function App() {
       <Navbar />
       <section className="app-content-container">
         <div className="app-content">
-          <ViewPort width={800} height={800} ratio={10} title="Cells Analysis Results" />
+          <ViewPort width={800} height={800} scaleFactor={10} title="Cells Analysis Results" />
         </div>
       </section>
     </div>

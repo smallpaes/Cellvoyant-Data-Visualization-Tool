@@ -12,14 +12,22 @@ import { Skeleton } from '../skeleton';
 interface ViewPortProps {
   width?: number;
   height?: number;
-  ratio?: number;
+  /**
+   * Scale factor to convert coordinates from original image space to viewport space.
+   * This should be calculated as: originalImageSize / viewportSize
+   * For example, if your original image is 4000x4000 and viewport is 800x800,
+   * the scaleFactor would be 4000/800 = 5
+   * This is used to scale x and y coordinates of data points to fit the viewport
+   * Auto calculation will be done upon implementing resize feature
+   */
+  scaleFactor?: number;
   title?: string;
 }
 
 export const ViewPort: React.FC<ViewPortProps> = ({
   width = 800,
   height = 800,
-  ratio = 1,
+  scaleFactor = 1,
   title,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -27,9 +35,9 @@ export const ViewPort: React.FC<ViewPortProps> = ({
 
   const updatedData = useMemo<DataPoint[]>(() => {
     {
-      return (data as DataPoint[]).map(([x, y, w, h]) => [x / ratio, y / ratio, w, h]);
+      return (data as DataPoint[]).map(([x, y, w, h]) => [x / scaleFactor, y / scaleFactor, w, h]);
     }
-  }, [ratio]);
+  }, [scaleFactor]);
 
   const pluginOptions: CustomPluginOptions = useMemo(
     () => ({
