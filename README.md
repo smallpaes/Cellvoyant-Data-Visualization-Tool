@@ -107,6 +107,7 @@ src/
 
 ## Nice to Have
 
+- Discuss with the user and update the styling of the bounding box
 - Loading state indicators for distribution chart during each viewport updates
 - Component testing and function unit testing
 - Progressive rendering with initial sampling:
