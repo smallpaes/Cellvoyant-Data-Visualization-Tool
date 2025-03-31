@@ -83,7 +83,7 @@ export const ViewPort: React.FC<ViewPortProps> = ({
           data={areaData}
           visible={showHistogram}
           onToggleVisibility={() => setShowHistogram(false)}
-          title="Distribution"
+          title="Size Distribution"
           subtitle={`${visiblePoints.length} boxes visible`}
         />
       </div>

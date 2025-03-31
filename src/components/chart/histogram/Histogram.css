@@ -17,7 +17,7 @@
   .histogram__title-container {
     text-align: left;
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: var(--spacing-sm);
   }
 
