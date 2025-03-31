@@ -9,7 +9,7 @@
   left: 0;
 }
 
-.navbar-content {
+.navbar__content {
   max-width: var(--navbar-max-width);
   margin: 0 auto;
   display: flex;
@@ -18,7 +18,7 @@
   padding: var(--spacing-sm);
 }
 
-.navbar-logo {
+.navbar__logo {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--logo-color);

@@ -13,8 +13,8 @@ function App() {
   return (
     <div className="app">
       <Navbar />
-      <section className="app-content-container">
-        <div className="app-content">
+      <section className="app__content-container">
+        <div className="app__content">
           <ViewPort
             width={DEFAULT_VIEWPORT_WIDTH}
             height={DEFAULT_VIEWPORT_HEIGHT}
