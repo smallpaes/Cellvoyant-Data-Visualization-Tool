@@ -16,8 +16,10 @@ export const useViewportActions = (
     if (!isInitialized) return;
     postMessage({
       type: WorkerMessageType.ZOOM,
-      scale,
-      center: centerX !== undefined && centerY !== undefined ? { x: centerX, y: centerY } : undefined
+      data: {
+        scale,
+        center: centerX !== undefined && centerY !== undefined ? { x: centerX, y: centerY } : undefined
+      }
     });
   }, [isInitialized, postMessage]);
 
@@ -25,7 +27,7 @@ export const useViewportActions = (
     if (!isInitialized) return;
     postMessage({
       type: WorkerMessageType.CENTER,
-      point: { x, y }
+      data: { point: { x, y } }
     });
   }, [isInitialized, postMessage]);
 

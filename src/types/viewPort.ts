@@ -12,7 +12,7 @@ type ClampPluginOptions = {
   right: number | null;
   top: number | null;
   bottom: number | null;
-  direction: 'all' | 'x' | 'y';
+  direction: 'all' | 'x' | 'y' | 'none';
   underflow: 'center' | 'top' | 'bottom' | 'left' | 'right';
 };
 
@@ -190,7 +190,7 @@ type TooltipPluginOptions = {
  * @property {Partial<FollowPluginOptions>} follow - Options for follow plugin.
  * @property {Partial<MouseEdgesPluginOptions>} mouseEdges - Options for mouse edges plugin.
  */
-export type PluginOptions = {
+export type CustomPluginOptions = {
   drag?: Partial<DragPluginOptions>;
   pinch?: Partial<PinchPluginOptions>;
   wheel?: Partial<WheelPluginOptions>;
@@ -203,13 +203,36 @@ export type PluginOptions = {
   tooltip?: Partial<TooltipPluginOptions>;
 };
 
+export type PluginOptions = {
+  drag: DragPluginOptions;
+  pinch: PinchPluginOptions;
+  wheel: WheelPluginOptions;
+  clamp: ClampPluginOptions;
+  clampZoom: ClampZoomPluginOptions;
+  bounce: BouncePluginOptions;
+  snap: SnapPluginOptions;
+  follow: FollowPluginOptions;
+  mouseEdges: MouseEdgesPluginOptions;
+  tooltip: TooltipPluginOptions;
+};
+
 /**
  * Information about the current viewport state
  */
 export type ViewportInfo = {
-  scale: number;
+  scale: {
+    x: number;
+    y: number;
+  };
   x: number;
   y: number;
+};
+
+export type DataPoint = [number, number, number, number]
+
+export type RenderedData = {
+  data: DataPoint[];
+  size: number;
 };
 
 export enum WorkerMessageType {
@@ -234,85 +257,104 @@ export type TooltipData = {
   y: number;
   width: number;
   height: number;
+  originalX: number;
+  originalY: number;
 };
 
 type BaseWorkerMessage = {
   type: WorkerMessageType;
-  data?: ViewportInfo;
 };
 
-type InitMessage = BaseWorkerMessage & {
-  type: WorkerMessageType.INIT;
+export type InitData = {
   canvas: OffscreenCanvas;
   imagePath: string;
-  renderedData: {
-    data: unknown;
-    size: number;
-  };
+  renderedData: RenderedData;
   viewport: {
     screenWidth: number;
     screenHeight: number;
     worldWidth: number;
     worldHeight: number;
-    plugins: PluginOptions;
+    plugins: Partial<CustomPluginOptions>;
   };
+}
+
+export type InitMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.INIT;
+  data: InitData;
 };
 
-type InitCompleteMessage = BaseWorkerMessage & {
+export type InitCompleteMessage = BaseWorkerMessage & {
   type: WorkerMessageType.INIT_COMPLETE;
   data: ViewportInfo;
 };
 
-type ViewportUpdateMessage = BaseWorkerMessage & {
+export type ViewportUpdateMessage = BaseWorkerMessage & {
   type: WorkerMessageType.VIEWPORT_UPDATE;
   data: ViewportInfo;
 };
 
-type WheelMessage = BaseWorkerMessage & {
+export type WheelData = Pick<WheelEvent, 'deltaY' | 'deltaMode'> & {
+  canvasX: number;
+  canvasY: number;
+};
+
+export type WheelMessage = BaseWorkerMessage & {
   type: WorkerMessageType.WHEEL;
-  deltaY: number;
-  deltaMode: number;
-  canvasX: number;
-  canvasY: number;
-};
+  data: WheelData;
+}
 
-type MouseButtonMessage = BaseWorkerMessage & {
+export type MouseButtonData = Pick<MouseEvent, 'button' | 'clientX' | 'clientY'>;
+
+export type MouseButtonMessage = BaseWorkerMessage & {
   type: WorkerMessageType.MOUSE_DOWN | WorkerMessageType.MOUSE_UP;
-  button: number;
-  clientX: number;
-  clientY: number;
-};
+  data: MouseButtonData;
+}
 
-type MouseMoveMessage = BaseWorkerMessage & {
-  type: WorkerMessageType.MOUSE_MOVE;
-  clientX: number;
-  clientY: number;
+export type MouseMoveData = Pick<MouseEvent, 'clientX' | 'clientY'> & {
   canvasX: number;
   canvasY: number;
+}
+
+export type MouseMoveMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.MOUSE_MOVE;
+  data: MouseMoveData;
 };
 
-type ZoomMessage = BaseWorkerMessage & {
-  type: WorkerMessageType.ZOOM;
+export type ZoomData = {
   scale: number;
   center?: { x: number; y: number };
+}
+
+export type ZoomMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.ZOOM;
+  data: ZoomData;
 };
 
-type CenterMessage = BaseWorkerMessage & {
+export type CenterMessage = BaseWorkerMessage & {
   type: WorkerMessageType.CENTER;
-  point: { x: number; y: number };
+  data: { point: { x: number; y: number } };
 };
 
-type ResetMessage = BaseWorkerMessage & {
+export type ResetMessage = BaseWorkerMessage & {
   type: WorkerMessageType.RESET;
 };
 
-type TooltipUpdateMessage = BaseWorkerMessage & {
+export type TooltipUpdateMessage = BaseWorkerMessage & {
   type: WorkerMessageType.TOOLTIP_UPDATE;
   data: null | TooltipData;
 };
 
-type MouseLeaveMessage = BaseWorkerMessage & {
+export type MouseLeaveMessage = BaseWorkerMessage & {
   type: WorkerMessageType.MOUSE_LEAVE;
+};
+
+export type InitialRenderCompleteMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.INITIAL_RENDER_COMPLETE;
+};
+
+export type VisiblePointsUpdateMessage = BaseWorkerMessage & {
+  type: WorkerMessageType.VISIBLE_POINTS_UPDATE;
+  data: VisiblePoint[];
 };
 
 export type VisiblePoint = {
@@ -321,15 +363,6 @@ export type VisiblePoint = {
   width: number;
   height: number;
 }
-
-type InitialRenderCompleteMessage = BaseWorkerMessage & {
-  type: WorkerMessageType.INITIAL_RENDER_COMPLETE;
-};
-
-type VisiblePointsUpdateMessage = BaseWorkerMessage & {
-  type: WorkerMessageType.VISIBLE_POINTS_UPDATE;
-  data: VisiblePoint[];
-};
 
 export type WorkerMessage =
   | InitMessage
@@ -345,3 +378,15 @@ export type WorkerMessage =
   | MouseLeaveMessage
   | VisiblePointsUpdateMessage
   | InitialRenderCompleteMessage;
+
+export type RBushItem = {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+  x: number;
+  y: number;
+  id: string;
+  width: number;
+  height: number;
+}

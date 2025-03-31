@@ -3,7 +3,7 @@ import './Viewport.css';
 
 import data from '../../data/data.json'
 import useViewport from '../../hooks/viewport/useViewport';
-import { PluginOptions } from '../../types/viewPort'
+import { CustomPluginOptions, DataPoint } from '../../types/viewPort'
 import { Histogram } from '../chart/histogram';
 import { Toolbox } from './toolbox';
 import { Tooltip } from './tooltip';
@@ -16,8 +16,6 @@ interface ViewPortProps {
   title?: string;
 }
 
-type CellType = [number, number, number, number]
-
 export const ViewPort: React.FC<ViewPortProps> = ({
   width = 800,
   height = 800,
@@ -27,11 +25,11 @@ export const ViewPort: React.FC<ViewPortProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [showHistogram, setShowHistogram] = useState(false);
 
-  const updatedData = useMemo(() => {{
-    return (data as CellType[]).map(([x, y, w, h]) => [x / ratio, y  / ratio, w, h])
+  const updatedData = useMemo<DataPoint[]>(() => {{
+    return (data as DataPoint[]).map(([x, y, w, h]) => ([x / ratio, y  / ratio, w, h]))
   }}, [ratio])
 
-  const pluginOptions: PluginOptions = useMemo(() => ({
+  const pluginOptions: CustomPluginOptions = useMemo(() => ({
     clampZoom: {
       minScale: 1,
       maxScale: 15
@@ -60,7 +58,7 @@ export const ViewPort: React.FC<ViewPortProps> = ({
     viewportActions,
     visiblePoints,
     tooltip
-  } = useViewport({ canvasRef, data: updatedData, pluginOptions });
+  } = useViewport<DataPoint[]>({ canvasRef, data: updatedData, pluginOptions });
 
   const areaData = useMemo(() => visiblePoints.map(box => box.width * box.height), [visiblePoints])
 

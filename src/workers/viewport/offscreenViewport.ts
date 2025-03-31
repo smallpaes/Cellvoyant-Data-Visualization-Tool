@@ -1,9 +1,63 @@
-import { Container } from '@pixi/webworker';
+import { Container, Sprite, Texture } from '@pixi/webworker';
 import RBush from 'rbush';
 import { DEFAULT_VIEWPORT_CONFIG, POINT_DEFAULTS, DEFAULT_PLUGIN_OPTIONS } from './viewportConstants';
+import { MouseButtonData, WheelData, MouseMoveData, RBushItem, TooltipData, CustomPluginOptions, PluginOptions } from '../../types/viewPort';
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface ViewportOptions {
+  screenWidth?: number;
+  screenHeight?: number;
+  worldWidth?: number;
+  worldHeight?: number;
+  pluginOptions?: CustomPluginOptions;
+}
+
+interface DragPlugin {
+  active: boolean;
+  last: Point | null;
+}
+
+interface PinchPlugin {
+  active: boolean;
+  center: Point | null;
+  distance: number;
+}
+
+interface WheelPlugin {
+  smoothing: number | null;
+}
+
+interface PluginsState {
+  drag: DragPlugin;
+  pinch: PinchPlugin;
+  wheel: WheelPlugin;
+}
 
 export class OffscreenViewport extends Container {
-  constructor(options = {}) {
+  screenWidth: number;
+  screenHeight: number;
+  worldWidth: number;
+  worldHeight: number;
+  private _worldCenter: Point;
+  dotIndex: RBush<RBushItem>;
+  spriteMap: Map<string, Sprite>;
+  private _lastHoveredPoint: RBushItem | null;
+  pointTexture: Texture | null;
+  hoveredPointTexture: Texture | null;
+  basePointSize: number;
+  basePointRadius: number;
+  scaleFactor: number | null;
+  pluginsState: PluginsState;
+  pluginOptions: PluginOptions;
+  minScale: number;
+  maxScale: number;
+  private _dirty: boolean;
+
+  constructor(options: ViewportOptions = {}) {
     super();
     // Screen dimensions (canvas size)
     this.screenWidth = options.screenWidth || DEFAULT_VIEWPORT_CONFIG.screenWidth;
@@ -40,46 +94,47 @@ export class OffscreenViewport extends Container {
     this.scaleFactor = null;
     
     // Enable plugins (features)
-    this.plugins = {
+    this.pluginsState = {
       drag: { active: false, last: null },
       pinch: { active: false, center: null, distance: 0 },
       wheel: { smoothing: null }
     };
     
     // Initialize plugin options
-    this.initializePluginOptions(options.plugins);
+    this.pluginOptions = DEFAULT_PLUGIN_OPTIONS;
+    this.addCustomPluginOptions(options.pluginOptions);
     
     // Setup scale limits
-    this.minScale = this.pluginOptions.clampZoom.minScale;
-    this.maxScale = this.pluginOptions.clampZoom.maxScale;
+    this.minScale = this.pluginOptions.clampZoom.minScale ?? DEFAULT_PLUGIN_OPTIONS.clampZoom.minScale;
+    this.maxScale = this.pluginOptions.clampZoom.maxScale ?? DEFAULT_PLUGIN_OPTIONS.clampZoom.maxScale;
     
     // For sending updates to the main thread
     this._dirty = true;
   }
 
-  initializePluginOptions(userPlugins) {
-    // Default plugin options
-    this.pluginOptions = DEFAULT_PLUGIN_OPTIONS;
-
+  addCustomPluginOptions(userPluginOptions?: CustomPluginOptions): void {
+    if (!userPluginOptions) return;    
+    const pluginKeys = Object.keys(userPluginOptions) as Array<keyof typeof userPluginOptions>;
     // Override with user options
-    if (userPlugins) {
-      Object.keys(userPlugins).forEach(plugin => {
-        if (this.pluginOptions[plugin]) {
-          this.pluginOptions[plugin] = {
-            ...this.pluginOptions[plugin],
-            ...userPlugins[plugin]
-          };
+    for (const key of pluginKeys) {
+      // Merge with default options for the specific plugin
+      const defaultOptions = DEFAULT_PLUGIN_OPTIONS[key];
+      this.pluginOptions = {
+        ...this.pluginOptions,
+        [key]: {
+          ...defaultOptions,
+          ...userPluginOptions[key]
         }
-      });
+      };
     }
   }
   
   /**
    * Converts screen coordinates to world coordinates
-   * @param {object} screenPoint - Point in screen coordinates
-   * @returns {object} Point in world coordinates
+   * @param {Point} screenPoint - Point in screen coordinates
+   * @returns {Point} Point in world coordinates
    */
-  toWorld(screenPoint) {
+  toWorld(screenPoint: Point): Point {
     return {
       x: (screenPoint.x - this.x) / this.scale.x,
       y: (screenPoint.y - this.y) / this.scale.y
@@ -88,10 +143,10 @@ export class OffscreenViewport extends Container {
   
   /**
    * Converts world coordinates to screen coordinates
-   * @param {object} worldPoint - Point in world coordinates
-   * @returns {object} Point in screen coordinates
+   * @param {Point} worldPoint - Point in world coordinates
+   * @returns {Point} Point in screen coordinates
    */
-  toScreen(worldPoint) {
+  toScreen(worldPoint: Point): Point {
     return {
       x: worldPoint.x * this.scale.x + this.x,
       y: worldPoint.y * this.scale.y + this.y
@@ -100,9 +155,9 @@ export class OffscreenViewport extends Container {
   
   /**
    * Move the center of the viewport to a specific world coordinate
-   * @param {object} point - The point to center on
+   * @param {Point} point - The point to center on
    */
-  moveCenter(point) {
+  moveCenter(point: Point): void {
     this.x = (this.screenWidth / 2) - (point.x * this.scale.x);
     this.y = (this.screenHeight / 2) - (point.y * this.scale.y);
     this._dirty = true;
@@ -111,7 +166,7 @@ export class OffscreenViewport extends Container {
   /**
    * Move the viewport to the center of the world
    */
-  moveToCenter() {
+  moveToCenter(): void {
     this.moveCenter(this._worldCenter);
   }
   
@@ -120,7 +175,7 @@ export class OffscreenViewport extends Container {
    * @param {number} x - X direction to move
    * @param {number} y - Y direction to move
    */
-  move(x, y) {
+  move(x: number, y: number): void {
     this.x += x;
     this.y += y;
     this._dirty = true;
@@ -129,9 +184,9 @@ export class OffscreenViewport extends Container {
   /**
    * Zoom at a specific point
    * @param {number} scale - Scale factor (>1 to zoom in, <1 to zoom out)
-   * @param {object} center - Point in screen coordinates to zoom at
+   * @param {Point} center - Point in screen coordinates to zoom at
    */
-  zoomAt(scale, center) {
+  zoomAt(scale: number, center: Point): void {
     // Get the world position before zooming
     const worldPos = this.toWorld(center);
     
@@ -161,9 +216,9 @@ export class OffscreenViewport extends Container {
   
   /**
    * Handle a wheel event for zooming
-   * @param {object} event - Wheel event data
+   * @param {WheelEvent} event - Wheel event data
    */
-  handleWheel(event) {
+  handleWheel(data: WheelData): void {
     const wheelOptions = this.pluginOptions.wheel;
     
     // Get the direction of zoom
@@ -171,8 +226,8 @@ export class OffscreenViewport extends Container {
     
     // Calculate the zoom factor based on delta
     // Using the lineHeight option to scale non-pixel units
-    let wheelDelta = -event.deltaY;
-    if (event.deltaMode === 1) {
+    let wheelDelta = -data.deltaY;
+    if (data.deltaMode === 1) {
       wheelDelta *= wheelOptions.lineHeight;
     }
     
@@ -183,35 +238,7 @@ export class OffscreenViewport extends Container {
     // Create a point for the zoom center
     const point = wheelOptions.center 
       ? { x: this.screenWidth / 2, y: this.screenHeight / 2 } 
-      : { x: event.canvasX, y: event.canvasY };
-    
-    // Apply the zoom
-    this.zoomAt(scale, point);
-  }/**
-   * Handle a wheel event for zooming
-   * @param {object} event - Wheel event data
-   */
-  handleWheel(event) {
-    const wheelOptions = this.pluginOptions.wheel;
-    
-    // Get the direction of zoom
-    const sign = wheelOptions.reverse ? -1 : 1;
-    
-    // Calculate the zoom factor based on delta
-    // Using the lineHeight option to scale non-pixel units
-    let wheelDelta = -event.deltaY;
-    if (event.deltaMode === 1) {
-      wheelDelta *= wheelOptions.lineHeight;
-    }
-    
-    const percent = wheelOptions.percent;
-    const step = sign * wheelDelta / 1000;
-    const scale = Math.pow(2, (1 + percent) * step);
-    
-    // Create a point for the zoom center
-    const point = wheelOptions.center 
-      ? { x: this.screenWidth / 2, y: this.screenHeight / 2 } 
-      : { x: event.canvasX, y: event.canvasY };
+      : { x: data.canvasX, y: data.canvasY };
     
     // Apply the zoom
     this.zoomAt(scale, point);
@@ -219,21 +246,21 @@ export class OffscreenViewport extends Container {
   
   /**
    * Handle mouse down event for dragging
-   * @param {object} event - Mouse event data
+   * @param {MouseButtonData} event - Mouse event data
    */
-  handleMouseDown(event) {
+  handleMouseDown(data: MouseButtonData): void {
     const dragOptions = this.pluginOptions.drag;
     
     // Only handle primary button (left click) by default
     const allowedButtons = dragOptions.mouseButtons === 'all' ? [0, 1, 2] : [0];
     
-    if (allowedButtons.includes(event.button) && dragOptions.pressDrag) {
-      this.plugins.drag.active = true;
-      this.plugins.drag.last = { x: event.clientX, y: event.clientY };
+    if (allowedButtons.includes(data.button) && dragOptions.pressDrag) {
+      this.pluginsState.drag.active = true;
+      this.pluginsState.drag.last = { x: data.clientX, y: data.clientY };
     }
   }
 
-  findClosestPoint(points, mousePosition, searchRadius) {
+  findClosestPoint(points: RBushItem[], mousePosition: Point, searchRadius: number): RBushItem | null {
     let closestPoint = null;
     let closestDistance = null;
 
@@ -252,16 +279,16 @@ export class OffscreenViewport extends Container {
     return closestPoint;
   }
 
-  resetLastHoveredPoint() {
+  resetLastHoveredPoint(): void {
     if (!this._lastHoveredPoint) return;
     const lastSprite = this.spriteMap.get(this._lastHoveredPoint.id);
-    if (lastSprite) {
+    if (lastSprite && this.pointTexture) {
       lastSprite.texture = this.pointTexture;
     }
     this._lastHoveredPoint = null;
   }
 
-  updateHoverState(closestPoint) {
+  updateHoverState(closestPoint: RBushItem | null): void {
     if (!closestPoint) {
       this.resetLastHoveredPoint();
       return;
@@ -274,21 +301,22 @@ export class OffscreenViewport extends Container {
 
     // Update new hovered point
     const sprite = this.spriteMap.get(closestPoint.id);
-    if (!sprite) return;
+    if (!sprite || !this.hoveredPointTexture) return;
     sprite.texture = this.hoveredPointTexture;
     this._lastHoveredPoint = closestPoint;
   }
 
   /**
-   * Check if the mouse is over a point
-   * @param {object} event - Mouse event data
-   * @returns {boolean} True if the mouse is over a point
+   * Checks if the mouse is over a point and returns the tooltip data if it is
+   * @param {MouseMoveData} data - Mouse move event data
+   * @returns {TooltipData | null} Tooltip data if the mouse is over a point, otherwise null
    */
-  checkMouseOverPoint(event) {
+  checkMouseOverPoint(data: MouseMoveData): TooltipData | null {
     // Convert mouse screen coordinates to world coordinates
-    const worldPos = this.toWorld({ x: event.canvasX, y: event.canvasY });
+    const worldPos = this.toWorld({ x: data.canvasX, y: data.canvasY });
     
     // Calculate search radius in world coordinates
+    if (!this.scaleFactor) return null;
     const currentPointRadius = this.basePointRadius * this.scaleFactor
 
     // Define search box in world coordinates
@@ -317,18 +345,14 @@ export class OffscreenViewport extends Container {
       originalY: closestPoint.y
     };
   }
-  
-  /**
-   * Handle mouse move event for dragging
-   * @param {object} event - Mouse event data
-   */
-  handleMouseMove(event) {
-    const dragData = this.plugins.drag;
+
+  handleMouseMove(data: MouseMoveData): void {
+    const dragData = this.pluginsState.drag;
     const dragOptions = this.pluginOptions.drag;
     
     if (dragData.active && dragData.last) {
-      const dx = event.clientX - dragData.last.x;
-      const dy = event.clientY - dragData.last.y;
+      const dx = data.clientX - dragData.last.x;
+      const dy = data.clientY - dragData.last.y;
       
       // Apply drag factor
       const factor = dragOptions.factor;
@@ -343,7 +367,7 @@ export class OffscreenViewport extends Container {
       }
       
       // Update last position
-      dragData.last = { x: event.clientX, y: event.clientY };
+      dragData.last = { x: data.clientX, y: data.clientY };
       
       // Apply clamping
       this.clamp();
@@ -352,34 +376,30 @@ export class OffscreenViewport extends Container {
     }
   }
 
-  resetDragData() {
-    const dragData = this.plugins.drag;
+  resetDragData(): void {
+    const dragData = this.pluginsState.drag;
     if (dragData.active && dragData.last) {
       dragData.active = false;
       dragData.last = null;
     }
   }
-  
-  /**
-   * Handle mouse up event to end dragging
-   * @param {object} event - Mouse event data
-   */
-  handleMouseUp(event) {
+
+  handleMouseUp(data: MouseButtonData): void {
     const allowedButtons = this.pluginOptions.drag.mouseButtons === 'all' ? [0, 1, 2] : [0];
-    if (allowedButtons.includes(event.button)) {
+    if (allowedButtons.includes(data.button)) {
       this.resetDragData();
     }
   }
 
-  handleMouseLeave() {
+  handleMouseLeave(): void {
     this.resetDragData();
     this.resetLastHoveredPoint();
   }
-  
+
   /**
-   * Clamp the viewport to world boundaries
+   * Clamps the viewport within the world boundaries
    */
-  clamp() {
+  clamp(): void {
     const clampOptions = this.pluginOptions.clamp;
     
     // Skip if no clamping is enabled
@@ -459,13 +479,8 @@ export class OffscreenViewport extends Container {
       }
     }
   }
-  
-  /**
-   * Handle viewport resize
-   * @param {number} width - New width
-   * @param {number} height - New height
-   */
-  resize(width, height) {
+
+  resize(width: number, height: number): void {
     // Store the center point before resize
     const center = this.toWorld({
       x: this.screenWidth / 2,
@@ -485,11 +500,7 @@ export class OffscreenViewport extends Container {
     this._dirty = true;
   }
 
-  /**
-   * Get all the visible points in the viewport
-   * @returns {object[]} Array of visible points
-   */
-  getVisiblePoints() {
+  getVisiblePoints(): Point[] {
     // Convert viewport bounds to world coordinates
     const visibleBounds = {
       // Left edge of viewport in world coordinates
@@ -509,37 +520,22 @@ export class OffscreenViewport extends Container {
       height: point.height
     }));
   }
-  
-  /**
-   * Get the current viewport state for sending to main thread
-   * @returns {object} Current state
-   */
-  getState() {
+
+  getState(): { x: number; y: number; scale: { x: number; y: number } } {
     return {
       x: this.x,
       y: this.y,
-      scale: this.scale.x,
-      width: this.screenWidth,
-      height: this.screenHeight
+      scale: { x: this.scale.x, y: this.scale.y },
     };
   }
-  
-  /**
-   * Check if the viewport state has changed
-   * @returns {boolean} True if state changed
-   */
-  checkDirty() {
-    if (this._dirty) {
-      this._dirty = false;
-      return true;
-    }
-    return false;
+
+  checkDirty(): boolean {
+    const wasDirty = this._dirty;
+    this._dirty = false;
+    return wasDirty;
   }
 
-  setPointScaleFactor(size) {
-    if (typeof size !== 'number' || size <= 0) {
-      throw new Error('Scale factor must be a positive number');
-    }
+  setPointScaleFactor(size: number): void {
     this.scaleFactor = size;
   }
 } 

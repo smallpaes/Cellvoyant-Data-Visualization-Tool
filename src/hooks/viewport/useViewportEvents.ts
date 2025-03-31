@@ -32,10 +32,12 @@ export const useViewportEvents = ({ canvasRef, postMessage, isInitialized }: Use
         
     postMessage({
       type: WorkerMessageType.WHEEL,
-      deltaY: e.deltaY,
-      deltaMode: e.deltaMode,
-      canvasX,
-      canvasY
+      data: {
+        deltaY: e.deltaY,
+        deltaMode: e.deltaMode,
+        canvasX,
+        canvasY
+      }
     });
   }, [canvasRef, postMessage]);
 
@@ -43,9 +45,11 @@ export const useViewportEvents = ({ canvasRef, postMessage, isInitialized }: Use
     e.stopPropagation();
     postMessage({
       type: WorkerMessageType.MOUSE_DOWN,
-      button: e.button,
-      clientX: e.clientX,
-      clientY: e.clientY
+      data: {
+        button: e.button,
+        clientX: e.clientX,
+        clientY: e.clientY
+      }
     });
   }, [postMessage]);
 
@@ -64,10 +68,12 @@ export const useViewportEvents = ({ canvasRef, postMessage, isInitialized }: Use
 
     postMessage({
       type: WorkerMessageType.MOUSE_MOVE,
-      clientX: e.clientX,
-      clientY: e.clientY,
-      canvasX: isOutsideCanvas ? -1 : canvasX,
-      canvasY: isOutsideCanvas ? -1 : canvasY
+      data: {
+        clientX: e.clientX,
+        clientY: e.clientY,
+        canvasX: isOutsideCanvas ? -1 : canvasX,
+        canvasY: isOutsideCanvas ? -1 : canvasY
+      }
     });
   }, [postMessage, canvasRef]);
 
@@ -75,9 +81,11 @@ export const useViewportEvents = ({ canvasRef, postMessage, isInitialized }: Use
     e.stopPropagation();
     postMessage({
       type: WorkerMessageType.MOUSE_UP,
-      button: e.button,
-      clientX: e.clientX,
-      clientY: e.clientY
+      data: {
+        button: e.button,
+        clientX: e.clientX,
+        clientY: e.clientY
+      }
     });
   }, [postMessage]);
 

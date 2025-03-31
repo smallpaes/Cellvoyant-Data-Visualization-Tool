@@ -1,7 +1,9 @@
-import { Sprite, Container, Graphics, RenderTexture, Rectangle, Texture } from '@pixi/webworker';
-import { POINT_DEFAULTS } from './viewportConstants';
+import { Sprite, Container, Graphics, RenderTexture, Rectangle, Texture, Application } from '@pixi/webworker';
+import { POINT_DEFAULTS } from './viewportConstants.ts';
+import { OffscreenViewport } from './offscreenViewport.ts';
+import { RBushItem, RenderedData } from '../../types/viewPort';
 
-function createBackground(viewport, texture) {
+function createBackground(viewport: OffscreenViewport, texture: Texture): Sprite {
   // Create background image
   const image = new Sprite(texture);
   image.x = 0;
@@ -13,13 +15,13 @@ function createBackground(viewport, texture) {
   return image;
 }
 
-function generateDataPointId(x, y) {
+function generateDataPointId(x: number, y: number): string {
   return `${x}-${y}`;
 }
 
-function initRBushItems(viewport, renderedData) {
+function initRBushItems(viewport: OffscreenViewport, renderedData: RenderedData): RBushItem[] {
   // Prepare items for RBush index
-  const items = renderedData.data.map((point, i) => ({
+  const items = renderedData.data.map((point) => ({
     minX: point[0] - renderedData.size,
     minY: point[1] - renderedData.size,
     maxX: point[0] + renderedData.size,
@@ -37,7 +39,7 @@ function initRBushItems(viewport, renderedData) {
   return items;
 }
 
-function createCircle(viewport, lineAlpha) {
+function createCircle(viewport: OffscreenViewport, lineAlpha: number): Graphics {
   const graphics = new Graphics();
   graphics.lineStyle(
     POINT_DEFAULTS.lineWidth, 
@@ -56,10 +58,11 @@ function createCircle(viewport, lineAlpha) {
  * Create a RenderTexture containing two circles: normal frame and hovered frame
  * Pixi uses frame switching within that texture to avoid re-binding new textures
  * Allows for batched rendering and fewer draw calls, which is more efficient on GPU
+ * @param {Application} app - The Pixi application instance
  * @param {OffscreenViewport} viewport - The viewport instance
- * @returns {Texture} A RenderTexture containing the two circles
+ * @returns {RenderTexture} A RenderTexture containing the two circles
  */
-function createDataPointSpriteSheet(app, viewport) {
+function createDataPointSpriteSheet(app: Application, viewport: OffscreenViewport): RenderTexture {
   const renderTexture = RenderTexture.create({ 
     width: viewport.basePointSize * 2, 
     height: viewport.basePointSize,
@@ -88,12 +91,12 @@ function createDataPointSpriteSheet(app, viewport) {
  * are referenced by creating new Texture() objects that point to specific regions
  * of the RenderTexture
  * @param {OffscreenViewport} viewport - The viewport instance
- * @param {Texture} renderedTexture - The rendered texture containing the two circles
+ * @param {RenderTexture} renderedTexture - The rendered texture containing the two circles
  * @returns {Object} An object containing the normal and hovered frames
  */
-function createTextureFrames(viewport, renderedTexture) {
-  const normalFrame = new Texture(renderedTexture, new Rectangle(0, 0, viewport.basePointSize, viewport.basePointSize));
-  const hoverFrame = new Texture(renderedTexture, new Rectangle(viewport.basePointSize, 0, viewport.basePointSize, viewport.basePointSize));
+function createTextureFrames(viewport: OffscreenViewport, renderedTexture: RenderTexture): { normalFrame: Texture; hoverFrame: Texture } {
+  const normalFrame = new Texture(renderedTexture.baseTexture, new Rectangle(0, 0, viewport.basePointSize, viewport.basePointSize));
+  const hoverFrame = new Texture(renderedTexture.baseTexture, new Rectangle(viewport.basePointSize, 0, viewport.basePointSize, viewport.basePointSize));
   
   viewport.pointTexture = normalFrame;
   viewport.hoveredPointTexture = hoverFrame;
@@ -107,8 +110,9 @@ function createTextureFrames(viewport, renderedTexture) {
  * @param {number} x - The x coordinate of the data point
  * @param {number} y - The y coordinate of the data point
  * @param {number} scaleFactor - The scale factor of the data point
+ * @returns {Sprite} The created data point sprite
  */
-function createDataPoint(normalFrame, x, y, scaleFactor) {
+function createDataPoint(normalFrame: Texture, x: number, y: number, scaleFactor: number): Sprite {
   const dataPoint = new Sprite(normalFrame);
   dataPoint.x = x;
   dataPoint.y = y;
@@ -121,11 +125,11 @@ function createDataPoint(normalFrame, x, y, scaleFactor) {
  * Renders data points to the viewport using sprite sheets for efficient GPU rendering
  * @param {Application} app - The Pixi application instance
  * @param {OffscreenViewport} viewport - The viewport instance
- * @param {Object} renderedData - The data to render
+ * @param {RenderedData} renderedData - The data to render
  * @returns {Container} The container holding all data point sprites
  */
-function renderDataToViewport(app, viewport, renderedData) {
-  const spriteSheet = createDataPointSpriteSheet(app, viewport, POINT_DEFAULTS.lineAlpha);
+function renderDataToViewport(app: Application, viewport: OffscreenViewport, renderedData: RenderedData): Container {
+  const spriteSheet = createDataPointSpriteSheet(app, viewport);
   const { normalFrame } = createTextureFrames(viewport, spriteSheet);
 
   // Create container for data points
@@ -136,7 +140,7 @@ function renderDataToViewport(app, viewport, renderedData) {
   const scaleFactor = (renderedData.size * 2) / viewport.basePointSize;
   viewport.setPointScaleFactor(scaleFactor);
 
-  for (let [x, y] of renderedData.data) {
+  for (const [x, y] of renderedData.data) {
     const dataPoint = createDataPoint(normalFrame, x, y, scaleFactor);
     sprites.addChild(dataPoint);
     viewport.spriteMap.set(generateDataPointId(x, y), dataPoint);
@@ -145,7 +149,7 @@ function renderDataToViewport(app, viewport, renderedData) {
   return sprites;
 }
 
-export async function createContent(app, viewport, texture, renderedData) {
+export async function createContent(app: Application, viewport: OffscreenViewport, texture: Texture, renderedData: RenderedData): Promise<void> {
   createBackground(viewport, texture);
   initRBushItems(viewport, renderedData);
   renderDataToViewport(app, viewport, renderedData);

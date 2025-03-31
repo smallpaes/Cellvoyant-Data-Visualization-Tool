@@ -1,30 +1,31 @@
+import { PluginOptions } from "../../types/viewPort";
+
 // Timing constants
 export const THROTTLE_DELAY = 16;
 
-// Viewport defaults
 export const DEFAULT_VIEWPORT_CONFIG = {
   screenWidth: 800,
   screenHeight: 800,
   worldWidth: 800,
   worldHeight: 800
-};
+} as const;
 
-// Application defaults
 export const DEFAULT_APP_CONFIG = {
   antialias: true,
   backgroundAlpha: 0
-};
+} as const;
 
-// Point rendering constants
+
 export const POINT_DEFAULTS = {
   basePointSize: 8,
   resolution: 2,
   lineWidth: 1,
   lineColor: 0xDC2626,
   lineAlpha: 0.5,
-};
+  hoverLineAlpha: 1
+} as const;
 
-export const DEFAULT_PLUGIN_OPTIONS = {
+export const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
   drag: {
     direction: 'all',
     pressDrag: true,
@@ -106,4 +107,4 @@ export const DEFAULT_PLUGIN_OPTIONS = {
   tooltip: {
     enabled: false,
   }
-};
+}; 

@@ -3,20 +3,20 @@ import useOffscreenCanvas from '../useOffscreenCanvas';
 import { useViewportWorker } from './useViewportWorker';
 import { useViewportEvents } from './useViewportEvents';
 import { useViewportActions, UseViewportActionsReturn } from './useViewportActions';
-import { PluginOptions, WorkerMessageType, ViewportInfo, WorkerMessage, TooltipData, VisiblePoint } from '../../types/viewPort';
+import { CustomPluginOptions, WorkerMessageType, ViewportInfo, WorkerMessage, TooltipData, VisiblePoint, DataPoint } from '../../types/viewPort';
 
 type UseViewportProps<T> = {
   screenWidth?: number;
   screenHeight?: number;
   canvasRef: RefObject<HTMLCanvasElement | null>,
   data: T
-  pluginOptions?: PluginOptions
+  pluginOptions?: CustomPluginOptions
 }
 
 type ViewportHookReturn = {
   viewportActions: UseViewportActionsReturn;
   isLoading: boolean;
-  viewportInfo: ViewportInfo;
+  viewportInfo: ViewportInfo | null;
   error: Error | null;
   tooltip: {
     isVisible: boolean;
@@ -25,7 +25,7 @@ type ViewportHookReturn = {
   visiblePoints: VisiblePoint[];
 }
 
-const useViewport = <T>({ 
+const useViewport = <T extends DataPoint[]>({ 
   screenWidth,
   screenHeight,
   canvasRef, 
@@ -33,7 +33,7 @@ const useViewport = <T>({
   pluginOptions
 }: UseViewportProps<T>): ViewportHookReturn => {
   const [error, setError] = useState<Error | null>(null);
-  const [viewportInfo, setViewportInfo] = useState<ViewportInfo>({ scale: 1, x: 0, y: 0 });
+  const [viewportInfo, setViewportInfo] = useState<ViewportInfo | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -42,24 +42,24 @@ const useViewport = <T>({
   const [visiblePoints, setVisiblePoints] = useState<VisiblePoint[]>([]);
 
   const handleWorkerMessage = useCallback((event: MessageEvent<WorkerMessage>) => {
-    const { type, data } = event.data;
-    switch (type) {
+    const message = event.data;
+    switch (message.type) {
       case WorkerMessageType.VIEWPORT_UPDATE:
-        setViewportInfo(data);
+        setViewportInfo(message.data);
         break;
       case WorkerMessageType.INIT_COMPLETE:
         setIsInitialized(true);
-        setViewportInfo(data);
+        setViewportInfo(message.data);
         break;
       case WorkerMessageType.TOOLTIP_UPDATE:
-        setShowTooltip(data !== null);
-        setTooltipData(data);
+        setShowTooltip(message.data !== null);
+        setTooltipData(message.data);
         break;
       case WorkerMessageType.INITIAL_RENDER_COMPLETE:
         setIsLoading(false);
         break;
       case WorkerMessageType.VISIBLE_POINTS_UPDATE:
-        setVisiblePoints(data);
+        setVisiblePoints(message.data);
         break;
       default:
         break;
@@ -78,18 +78,20 @@ const useViewport = <T>({
 
     postMessage({
       type: WorkerMessageType.INIT,
-      canvas: view,
-      imagePath: '/images/cell.jpg',
-      renderedData: {
-        data,
-        size: 1
-      },
-      viewport: {
-        screenWidth: screenWidth || width,
-        screenHeight: screenHeight || height,
-        worldWidth: width,
-        worldHeight: height,
-        plugins: pluginOptions || {}
+      data: {
+        canvas: view,
+        imagePath: '/images/cell.jpg',
+        renderedData: {
+          data,
+          size: 1
+        },
+        viewport: {
+          screenWidth: screenWidth || width,
+          screenHeight: screenHeight || height,
+          worldWidth: width,
+          worldHeight: height,
+          plugins: pluginOptions || {}
+        }
       }
     }, view);
   }, [view, canvasRef, data, pluginOptions, workerRef, postMessage, screenWidth, screenHeight]);
