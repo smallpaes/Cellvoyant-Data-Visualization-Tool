@@ -3,7 +3,8 @@ import { Navbar } from './components/navbar';
 import {
   DEFAULT_VIEWPORT_WIDTH,
   DEFAULT_VIEWPORT_HEIGHT,
-  DEFAULT_SCALE_FACTOR,
+  DEFAULT_IMAGE_HEIGHT,
+  DEFAULT_IMAGE_WIDTH,
 } from './components/viewport/config';
 
 import './App.css';
@@ -17,7 +18,8 @@ function App() {
           <ViewPort
             width={DEFAULT_VIEWPORT_WIDTH}
             height={DEFAULT_VIEWPORT_HEIGHT}
-            scaleFactor={DEFAULT_SCALE_FACTOR}
+            imageWidth={DEFAULT_IMAGE_WIDTH}
+            imageHeight={DEFAULT_IMAGE_HEIGHT}
             title="Cells Analysis Results"
           />
         </div>

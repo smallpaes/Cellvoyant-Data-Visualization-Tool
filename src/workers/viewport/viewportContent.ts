@@ -30,10 +30,10 @@ function generateDataPointId(x: number, y: number): string {
 function initRBushItems(viewport: OffscreenViewport, renderedData: RenderedData): RBushItem[] {
   // Prepare items for RBush index
   const items = renderedData.data.map((point) => ({
-    minX: point[0] - renderedData.size,
-    minY: point[1] - renderedData.size,
-    maxX: point[0] + renderedData.size,
-    maxY: point[1] + renderedData.size,
+    minX: point[0] - renderedData.brushSize,
+    minY: point[1] - renderedData.brushSize,
+    maxX: point[0] + renderedData.brushSize,
+    maxY: point[1] + renderedData.brushSize,
     x: point[0],
     y: point[1],
     id: generateDataPointId(point[0], point[1]),
@@ -154,7 +154,7 @@ function renderDataToViewport(
   viewport.addChild(sprites);
 
   // Set scale factor and create data points
-  const scaleFactor = (renderedData.size * 2) / viewport.basePointSize;
+  const scaleFactor = (renderedData.brushSize * 2) / viewport.basePointSize;
   viewport.setPointScaleFactor(scaleFactor);
 
   for (const [x, y] of renderedData.data) {
@@ -166,6 +166,19 @@ function renderDataToViewport(
   return sprites;
 }
 
+/**
+ * Scale the coordinate values in the rendered data to the viewport coordinates
+ * @param {RenderedData} renderedData - The rendered data
+ * @returns {RenderedData} The scaled rendered data
+ */
+function scaleDataCoordinates(renderedData: RenderedData): RenderedData {
+  const scaleFactor = renderedData.scaleFactor;
+  return {
+    ...renderedData,
+    data: renderedData.data.map(([x, y, w, h]) => [x * scaleFactor, y * scaleFactor, w, h]),
+  };
+}
+
 export async function createContent(
   app: Application,
   viewport: OffscreenViewport,
@@ -173,6 +186,7 @@ export async function createContent(
   renderedData: RenderedData
 ): Promise<void> {
   createBackground(viewport, texture);
-  initRBushItems(viewport, renderedData);
-  renderDataToViewport(app, viewport, renderedData);
+  const scaledRenderedData = scaleDataCoordinates(renderedData);
+  initRBushItems(viewport, scaledRenderedData);
+  renderDataToViewport(app, viewport, scaledRenderedData);
 }

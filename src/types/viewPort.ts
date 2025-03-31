@@ -232,7 +232,8 @@ export type DataPoint = [number, number, number, number];
 
 export type RenderedData = {
   data: DataPoint[];
-  size: number;
+  brushSize: number;
+  scaleFactor: number;
 };
 
 export enum WorkerMessageType {

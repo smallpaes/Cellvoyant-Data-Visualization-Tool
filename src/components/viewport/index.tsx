@@ -3,48 +3,43 @@ import './Viewport.css';
 
 import data from '../../data/data.json';
 import useViewport from '../../hooks/viewport/useViewport';
-import { CustomPluginOptions, DataPoint } from '../../types/viewPort';
+import { CustomPluginOptions, DataPoint, RenderedData } from '../../types/viewPort';
 import { Histogram } from '../chart/histogram';
 import { Toolbox } from './toolbox';
 import { Tooltip } from './tooltip';
 import { Skeleton } from '../skeleton';
-import { DEFAULT_PLUGIN_OPTIONS } from './config';
+import { DEFAULT_BRUSH_SIZE, DEFAULT_PLUGIN_OPTIONS } from './config';
 
 interface ViewPortProps {
   width?: number;
   height?: number;
-  /**
-   * Scale factor to convert coordinates from original image space to viewport space.
-   * This should be calculated as: originalImageSize / viewportSize
-   * For example, if your original image is 4000x4000 and viewport is 800x800,
-   * the scaleFactor would be 4000/800 = 5
-   * This is used to scale x and y coordinates of data points to fit the viewport
-   * Auto calculation will be done upon implementing resize feature
-   */
-  scaleFactor?: number;
+  imageWidth: number;
+  imageHeight: number;
   title?: string;
 }
 
 export const ViewPort: React.FC<ViewPortProps> = ({
   width = 800,
   height = 800,
-  scaleFactor = 1,
+  imageWidth,
   title,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [showHistogram, setShowHistogram] = useState(false);
 
-  const updatedData = useMemo<DataPoint[]>(() => {
-    {
-      return (data as DataPoint[]).map(([x, y, w, h]) => [x / scaleFactor, y / scaleFactor, w, h]);
-    }
-  }, [scaleFactor]);
+  const renderedData = useMemo<RenderedData>(() => {
+    return {
+      data: data as DataPoint[],
+      brushSize: DEFAULT_BRUSH_SIZE,
+      scaleFactor: width / imageWidth,
+    };
+  }, [imageWidth, width]);
 
   const pluginOptions: CustomPluginOptions = useMemo(() => DEFAULT_PLUGIN_OPTIONS, []);
 
-  const { isLoading, viewportActions, visiblePoints, tooltip } = useViewport<DataPoint[]>({
+  const { isLoading, viewportActions, visiblePoints, tooltip } = useViewport<RenderedData>({
     canvasRef,
-    data: updatedData,
+    renderedData,
     pluginOptions,
   });
 

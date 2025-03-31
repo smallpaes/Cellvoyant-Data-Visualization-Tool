@@ -10,14 +10,14 @@ import {
   WorkerMessage,
   TooltipData,
   VisiblePoint,
-  DataPoint,
+  RenderedData,
 } from '../../types/viewPort';
 
 type UseViewportProps<T> = {
   screenWidth?: number;
   screenHeight?: number;
   canvasRef: RefObject<HTMLCanvasElement | null>;
-  data: T;
+  renderedData: T;
   pluginOptions?: CustomPluginOptions;
 };
 
@@ -33,11 +33,11 @@ type ViewportHookReturn = {
   visiblePoints: VisiblePoint[];
 };
 
-const useViewport = <T extends DataPoint[]>({
+const useViewport = <T extends RenderedData>({
   screenWidth,
   screenHeight,
   canvasRef,
-  data,
+  renderedData,
   pluginOptions,
 }: UseViewportProps<T>): ViewportHookReturn => {
   const [error, setError] = useState<Error | null>(null);
@@ -90,10 +90,7 @@ const useViewport = <T extends DataPoint[]>({
         data: {
           canvas: view,
           imagePath: '/images/cell.jpg',
-          renderedData: {
-            data,
-            size: 1,
-          },
+          renderedData,
           viewport: {
             screenWidth: screenWidth || width,
             screenHeight: screenHeight || height,
@@ -105,7 +102,16 @@ const useViewport = <T extends DataPoint[]>({
       },
       view
     );
-  }, [view, canvasRef, data, pluginOptions, workerRef, postMessage, screenWidth, screenHeight]);
+  }, [
+    view,
+    canvasRef,
+    renderedData,
+    pluginOptions,
+    workerRef,
+    postMessage,
+    screenWidth,
+    screenHeight,
+  ]);
 
   useEffect(() => {
     if (!canvasRef.current || !view) return;

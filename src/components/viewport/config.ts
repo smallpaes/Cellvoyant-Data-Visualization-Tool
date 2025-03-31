@@ -4,7 +4,7 @@ export const DEFAULT_VIEWPORT_WIDTH = 800;
 export const DEFAULT_VIEWPORT_HEIGHT = 800;
 export const DEFAULT_IMAGE_WIDTH = 8000;
 export const DEFAULT_IMAGE_HEIGHT = 8000;
-export const DEFAULT_SCALE_FACTOR = DEFAULT_IMAGE_WIDTH / DEFAULT_VIEWPORT_WIDTH;
+export const DEFAULT_BRUSH_SIZE = 1;
 
 export const DEFAULT_PLUGIN_OPTIONS: CustomPluginOptions = {
   clampZoom: {
