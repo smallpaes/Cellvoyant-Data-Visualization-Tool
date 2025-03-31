@@ -13,11 +13,9 @@
   },
   "dependencies": {
     "@observablehq/plot": "^0.6.17",
-    "@pixi/react": "^8.0.0",
     "@pixi/webworker": "^7.4.3",
     "d3": "^7.9.0",
     "normalize.css": "^8.0.1",
-    "pixi-viewport": "^6.0.3",
     "pixi.js": "^8.9.0",
     "rbush": "^4.0.1",
     "react": "^19.0.0",
