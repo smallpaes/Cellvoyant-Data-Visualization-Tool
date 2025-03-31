@@ -35,11 +35,10 @@ export default [
       ...react.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'prettier/prettier': 'error',
-      // React best practices
       'react/jsx-uses-react': 'error',
       'react/jsx-uses-vars': 'error',
-      'react/prop-types': 'off', // We're using TypeScript
-      'react/react-in-jsx-scope': 'off', // Not needed in React 17+
+      'react/prop-types': 'off',
+      'react/react-in-jsx-scope': 'off',
     },
     settings: {
       react: {
