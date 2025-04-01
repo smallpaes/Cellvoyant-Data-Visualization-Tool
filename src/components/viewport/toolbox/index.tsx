@@ -77,6 +77,7 @@ export const Toolbox: React.FC<ToolboxProps> = ({
             disabled={isDisabled}
             aria-label={control.label}
             title={control.title}
+            data-tooltip={control.title}
             type="button"
           >
             <control.icon />
@@ -91,6 +92,7 @@ export const Toolbox: React.FC<ToolboxProps> = ({
           disabled={isDisabled}
           aria-label={histogramControl.label}
           title={histogramControl.title}
+          data-tooltip={histogramControl.title}
           type="button"
         >
           <histogramControl.icon />

@@ -28,19 +28,53 @@
   .toolbox__controls {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
   }
 
   .toolbox__button {
+    --triangle-size: 3px;
+    position: relative;
     border: none;
     background-color: transparent;
     cursor: pointer;
     transition: all 0.2s ease;
     color: var(--primary-color);
     padding: 0;
+    line-height: 1rem;
     svg {
       width: 1rem;
       height: 1rem;
+    }
+
+    &:not(:disabled):hover {
+      &::before {
+        content: attr(data-tooltip);
+        position: absolute;
+        right: calc(100% + var(--spacing-sm) + var(--triangle-size));
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: var(--component-background);
+        color: var(--primary-color);
+        padding: var(--spacing-xs);
+        border-radius: var(--border-radius-sm);
+        font-size: var(--font-size-xs);
+        white-space: nowrap;
+        opacity: 1;
+        pointer-events: none;
+        box-shadow: var(--shadow-sm);
+      }
+      &::after {
+        content: '';
+        position: absolute;
+        right: calc(100% + var(--spacing-sm));
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-top: var(--triangle-size) solid transparent;
+        border-bottom: var(--triangle-size) solid transparent;
+        border-left: var(--triangle-size) solid var(--component-background);
+      }
     }
   }
 
