@@ -1,7 +1,7 @@
 import { CustomPluginOptions } from '../../types/viewPort';
 
-export const DEFAULT_VIEWPORT_WIDTH = 800;
-export const DEFAULT_VIEWPORT_HEIGHT = 800;
+export const DEFAULT_VIEWPORT_WIDTH = 700;
+export const DEFAULT_VIEWPORT_HEIGHT = 700;
 export const DEFAULT_IMAGE_WIDTH = 8000;
 export const DEFAULT_IMAGE_HEIGHT = 8000;
 export const DEFAULT_BRUSH_SIZE = 1;
