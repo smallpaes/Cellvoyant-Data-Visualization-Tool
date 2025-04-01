@@ -26,8 +26,8 @@
 
 .app__content {
   max-width: var(--max-width-xl);
+  min-width: fit-content;
   margin: 0 auto;
   padding: var(--spacing-lg);
   height: 100%;
-  overflow: auto;
 }
