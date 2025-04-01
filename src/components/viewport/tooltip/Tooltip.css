@@ -6,6 +6,8 @@
   color: var(--text-color-primary);
   text-align: left;
   min-width: fit-content;
+  width: min-content;
+  white-space: nowrap;
   pointer-events: none;
   font-size: var(--font-size-sm);
 }
