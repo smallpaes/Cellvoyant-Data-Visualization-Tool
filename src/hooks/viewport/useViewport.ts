@@ -13,15 +13,15 @@ import {
   RenderedData,
 } from '../../types/viewPort';
 
-type UseViewportProps<T> = {
+interface UseViewportProps<T> {
   screenWidth?: number;
   screenHeight?: number;
   canvasRef: RefObject<HTMLCanvasElement | null>;
   renderedData: T;
   pluginOptions?: CustomPluginOptions;
-};
+}
 
-type ViewportHookReturn = {
+interface ViewportHookReturn {
   viewportActions: UseViewportActionsReturn;
   isLoading: boolean;
   viewportInfo: ViewportInfo | null;
@@ -31,7 +31,7 @@ type ViewportHookReturn = {
     data: TooltipData | null;
   };
   visiblePoints: VisiblePoint[];
-};
+}
 
 const useViewport = <T extends RenderedData>({
   screenWidth,
