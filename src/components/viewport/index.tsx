@@ -8,7 +8,14 @@ import { Histogram } from '../chart/histogram';
 import { Toolbox } from './toolbox';
 import { Tooltip } from './tooltip';
 import { Skeleton } from '../skeleton';
-import { DEFAULT_BRUSH_SIZE, DEFAULT_PLUGIN_OPTIONS } from './config';
+import {
+  DEFAULT_BRUSH_SIZE,
+  DEFAULT_PLUGIN_OPTIONS,
+  DEFAULT_ZOOM_IN_SCALE,
+  DEFAULT_ZOOM_OUT_SCALE,
+  DEFAULT_VIEWPORT_WIDTH,
+  DEFAULT_VIEWPORT_HEIGHT,
+} from './config';
 
 interface ViewPortProps {
   width?: number;
@@ -19,8 +26,8 @@ interface ViewPortProps {
 }
 
 export const ViewPort: React.FC<ViewPortProps> = ({
-  width = 800,
-  height = 800,
+  width = DEFAULT_VIEWPORT_WIDTH,
+  height = DEFAULT_VIEWPORT_HEIGHT,
   imageWidth,
   title,
 }) => {
@@ -50,8 +57,8 @@ export const ViewPort: React.FC<ViewPortProps> = ({
 
   const { zoomTo, centerOn, reset } = viewportActions;
 
-  const handleZoomIn = useCallback(() => zoomTo(1.2), [zoomTo]);
-  const handleZoomOut = useCallback(() => zoomTo(0.8), [zoomTo]);
+  const handleZoomIn = useCallback(() => zoomTo(DEFAULT_ZOOM_IN_SCALE), [zoomTo]);
+  const handleZoomOut = useCallback(() => zoomTo(DEFAULT_ZOOM_OUT_SCALE), [zoomTo]);
   const handleCenter = useCallback(
     () => centerOn(width / 2, height / 2),
     [centerOn, width, height]
