@@ -11,6 +11,7 @@ interface HistogramProps {
   customConfig?: Partial<PlotOptions>;
   title?: string;
   subtitle?: string;
+  emptyMessage?: string;
 }
 
 export const Histogram: React.FC<HistogramProps> = ({
@@ -20,6 +21,7 @@ export const Histogram: React.FC<HistogramProps> = ({
   customConfig,
   title,
   subtitle,
+  emptyMessage = 'No data to display',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [boxSizes, setBoxSizes] = useState<number[]>([]);
@@ -68,7 +70,10 @@ export const Histogram: React.FC<HistogramProps> = ({
           ×
         </button>
       </div>
-      <div ref={containerRef} className="histogram__chart-container"></div>
+      <div className="histogram__content">
+        <div ref={containerRef} className="histogram__chart-container"></div>
+        {boxSizes.length === 0 && <div className="histogram__empty-message">{emptyMessage}</div>}
+      </div>
     </div>
   );
 };
