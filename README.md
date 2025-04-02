@@ -107,7 +107,7 @@ src/
 └── assets/           # Static assets (svg images)
 ```
 
-## Nice to Have
+## Future Enhancements
 
 ### Feature side
 
