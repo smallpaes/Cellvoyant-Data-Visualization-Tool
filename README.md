@@ -15,7 +15,7 @@ A React-based web application for analyzing high-resolution cell images with AI-
     - [Key Technical Decisions](#key-technical-decisions)
   - [Technology Stack](#technology-stack)
   - [Project Structure Overview](#project-structure-overview)
-  - [Nice to Have](#nice-to-have)
+  - [Future Enhancements](#future-enhancements)
     - [Feature side](#feature-side)
     - [Coding side](#coding-side)
   - [Known Issues](#known-issues)
