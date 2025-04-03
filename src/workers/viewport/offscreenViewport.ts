@@ -330,73 +330,89 @@ export class OffscreenViewport extends Container {
     this.resetLastHoveredPoint();
   }
 
-  private clampXAxis(worldScreenWidth: number, xMin: number, xMax: number): void {
-    const clampOptions = this.pluginOptions.clamp;
-    const worldWidth = xMax - xMin;
+  private clampAxis(
+    viewportWorldSize: number,
+    min: number,
+    max: number,
+    screenSize: number,
+    scale: number,
+    position: 'x' | 'y',
+    underflow: 'center' | 'top' | 'bottom' | 'left' | 'right'
+  ): void {
+    const contentWorldSize = max - min;
 
-    if (worldWidth <= worldScreenWidth) {
-      switch (clampOptions.underflow) {
-        case 'center':
-          this.x = (this.screenWidth - worldWidth * this.scale.x) / 2;
-          break;
-        case 'left':
-          this.x = 0;
-          break;
-        case 'right':
-          this.x = this.screenWidth - worldWidth * this.scale.x;
-          break;
-        default:
-          this.x = 0;
-      }
+    if (contentWorldSize <= viewportWorldSize) {
+      this.positionSmallContent(contentWorldSize, screenSize, scale, position, underflow);
     } else {
-      const rightEdge = -xMin * this.scale.x;
-      const leftEdge = this.screenWidth - xMax * this.scale.x;
-
-      if (this.x > rightEdge) {
-        this.x = rightEdge;
-      } else if (this.x < leftEdge) {
-        this.x = leftEdge;
-      }
+      this.clampLargeContent(min, max, screenSize, scale, position);
     }
   }
 
-  private clampYAxis(worldScreenHeight: number, yMin: number, yMax: number): void {
-    const clampOptions = this.pluginOptions.clamp;
-    const worldHeight = yMax - yMin;
-    // Handle when content is smaller than screen
-    if (worldHeight <= worldScreenHeight) {
-      switch (clampOptions.underflow) {
-        case 'center':
-          this.y = (this.screenHeight - worldHeight * this.scale.y) / 2;
-          break;
-        case 'top':
-          this.y = 0;
-          break;
-        case 'bottom':
-          this.y = this.screenHeight - worldHeight * this.scale.y;
-          break;
-        default:
-          this.y = 0;
-      }
-    } else {
-      // Content is larger than screen, enforce boundaries
-      const bottomEdge = -yMin * this.scale.y;
-      const topEdge = this.screenHeight - yMax * this.scale.y;
-
-      if (this.y > bottomEdge) {
-        this.y = bottomEdge;
-      } else if (this.y < topEdge) {
-        this.y = topEdge;
-      }
+  private positionSmallContent(
+    contentWorldSize: number,
+    screenSize: number,
+    scale: number,
+    position: 'x' | 'y',
+    underflow: 'center' | 'top' | 'bottom' | 'left' | 'right'
+  ): void {
+    switch (underflow) {
+      case 'center':
+        this[position] = this.calculateCenterAlignedPosition(contentWorldSize, screenSize, scale);
+        break;
+      case position === 'x' ? 'left' : 'top':
+        this[position] = 0;
+        break;
+      case position === 'x' ? 'right' : 'bottom':
+        this[position] = this.calculateRightOrBottomEdgePosition(
+          contentWorldSize,
+          screenSize,
+          scale
+        );
+        break;
+      default:
+        this[position] = 0;
     }
+  }
+
+  private clampLargeContent(
+    min: number,
+    max: number,
+    screenSize: number,
+    scale: number,
+    position: 'x' | 'y'
+  ): void {
+    const endEdge = -min * scale;
+    const startEdge = screenSize - max * scale;
+
+    if (this[position] > endEdge) {
+      this[position] = endEdge;
+    } else if (this[position] < startEdge) {
+      this[position] = startEdge;
+    }
+  }
+
+  private calculateCenterAlignedPosition(
+    contentWorldSize: number,
+    screenSize: number,
+    scale: number
+  ): number {
+    return (screenSize - contentWorldSize * scale) / 2;
+  }
+
+  private calculateRightOrBottomEdgePosition(
+    contentWorldSize: number,
+    screenSize: number,
+    scale: number
+  ): number {
+    return screenSize - contentWorldSize * scale;
   }
 
   clamp(): void {
     const clampOptions = this.pluginOptions.clamp;
     if (clampOptions.direction === 'none') return;
 
-    const worldScreenWidth = this.screenWidth / this.scale.x;
-    const worldScreenHeight = this.screenHeight / this.scale.y;
+    const viewportWorldWidth = this.screenWidth / this.scale.x;
+    const viewportWorldHeight = this.screenHeight / this.scale.y;
 
     const xMin = clampOptions.left === null ? -Infinity : clampOptions.left || 0;
     const xMax = clampOptions.right === null ? Infinity : clampOptions.right || this.worldWidth;
@@ -404,11 +420,27 @@ export class OffscreenViewport extends Container {
     const yMax = clampOptions.bottom === null ? Infinity : clampOptions.bottom || this.worldHeight;
 
     if (clampOptions.direction === 'all' || clampOptions.direction === 'x') {
-      this.clampXAxis(worldScreenWidth, xMin, xMax);
+      this.clampAxis(
+        viewportWorldWidth,
+        xMin,
+        xMax,
+        this.screenWidth,
+        this.scale.x,
+        'x',
+        clampOptions.underflow
+      );
     }
 
     if (clampOptions.direction === 'all' || clampOptions.direction === 'y') {
-      this.clampYAxis(worldScreenHeight, yMin, yMax);
+      this.clampAxis(
+        viewportWorldHeight,
+        yMin,
+        yMax,
+        this.screenHeight,
+        this.scale.y,
+        'y',
+        clampOptions.underflow
+      );
     }
   }
 
